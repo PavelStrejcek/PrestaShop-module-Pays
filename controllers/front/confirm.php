@@ -32,7 +32,7 @@ class Pays_PsConfirmModuleFrontController extends ModuleFrontController {
      */
     public function postProcess() {
         if (!$this->module->active) {
-            http_response_code(500);
+            PaysPsModelUtils::http_response_code(500);
             die($this->module->l('Pays module is not active', 'confirm'));
         }
 
@@ -115,11 +115,11 @@ class Pays_PsConfirmModuleFrontController extends ModuleFrontController {
         if ($this->paysPsResponseFailed) {
             $endmsg = sprintf($this->module->l('Pays: Background confimation from payment gateway was unsuccessful. Messages: %s', 'confirm'), implode(' ', PaysPsModelMessage::getCombinedMessages($this->paysPsMsgs)));
             PrestaShopLogger::addLog($endmsg, 3, null, 'Order', Validate::isLoadedObject($order) ? $order->id : null, true);
-            http_response_code(500);
+            PaysPsModelUtils::http_response_code(500);
             die($endmsg);
         }
 
-        http_response_code(202);
+        PaysPsModelUtils::http_response_code(202);
         die('Accepted');
     }
 

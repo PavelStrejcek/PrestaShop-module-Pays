@@ -18,8 +18,6 @@
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  */
-use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -40,10 +38,10 @@ class Pays_PS extends PaymentModule {
     public function __construct() {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.1';
+        $this->version = '1.0.0';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
-        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => '1.7');
+        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6');
         $this->bootstrap = true;
         $this->controllers = array('payment', 'validate', 'confirm');
 
@@ -116,11 +114,11 @@ class Pays_PS extends PaymentModule {
                 $this->installOrderStatusReceived() &&
                 $this->installOrderStatusUnrealized() &&
                 $this->registerHook('paymentReturn') &&
-                $this->registerHook('paymentOptions') &&
+                $this->registerHook('payment') &&
                 $this->registerHook('displayAdminOrder') &&
                 $this->registerHook('displayBackOfficeHeader') &&
                 $this->registerHook('actionAdminControllerSetMedia') &&
-                $this->registerHook('actionFrontControllerSetMedia') &&
+                $this->registerHook('displayHeader') &&
                 $this->registerHook('displayOrderDetail') &&
                 $this->registerHook('actionEmailAddAfterContent') &&
                 Configuration::updateValue('PAYS_PS_PAYMENT_DESCRIPTION', $paymentDescriptions);
@@ -228,8 +226,6 @@ class Pays_PS extends PaymentModule {
         $orderState->delivery = false;
         $orderState->logable = false;
         $orderState->invoice = false;
-        $orderState->pdf_invoice = false;
-        $orderState->pdf_delivery = false;
         $orderState->shipped = false;
         $orderState->paid = false;
         $orderState->unremovable = true;
@@ -262,8 +258,6 @@ class Pays_PS extends PaymentModule {
         $orderState->delivery = false;
         $orderState->logable = true;
         $orderState->invoice = true;
-        $orderState->pdf_invoice = true;
-        $orderState->pdf_delivery = false;
         $orderState->shipped = false;
         $orderState->paid = true;
         $orderState->unremovable = true;
@@ -276,9 +270,7 @@ class Pays_PS extends PaymentModule {
                 $orderState->template[$lang] = $val;
             }
             $orderState->invoice = $paymentState->invoice;
-            $orderState->pdf_invoice = $paymentState->pdf_invoice;
             $orderState->delivery = $paymentState->delivery;
-            $orderState->pdf_delivery = $paymentState->pdf_delivery;
             $orderState->shipped = $paymentState->shipped;
         }
 
@@ -309,8 +301,6 @@ class Pays_PS extends PaymentModule {
         $orderState->delivery = false;
         $orderState->logable = false;
         $orderState->invoice = false;
-        $orderState->pdf_invoice = false;
-        $orderState->pdf_delivery = false;
         $orderState->shipped = false;
         $orderState->paid = false;
         $orderState->unremovable = true;
@@ -346,48 +336,35 @@ class Pays_PS extends PaymentModule {
         return $this->active && !empty($password);
     }
 
-    public function hookPaymentOptions($params) {
-
+    public function hookPayment($params) {
         if (!$this->isActive()) {
-            return array();
+            return;
         }
-
-        $this->context->smarty->assign(array(
-            'paysPsPaymentDescription' => Configuration::get('PAYS_PS_PAYMENT_DESCRIPTION', $this->context->customer->id_lang),
-        ));
-
         $currency = new Currency($params['cart']->id_currency);
-
-        $payment_options = array();
+        $payment_options = '';
         if ($this->modelCurrency->isCurrencyAvailable($currency->iso_code)) {
-            $payment_options[] = $this->getGatePaymentOption();
+            $linkParams = array(
+                'optionHash' => $this->getOptionHash('PAYMENTGATEWAY')
+            );
+            $this->context->smarty->assign(
+                    array(
+                        'paysPsPaymentIconPath' => _MODULE_DIR_ . $this->name . '/views/img/pays_ps-payment.png',
+                        'paysPsPaymentGatewayLink' => $this->context->link->getModuleLink($this->name, 'payment', $linkParams, null, null, null, true),
+                        'paysPsPaymentDescription' => Configuration::get('PAYS_PS_PAYMENT_DESCRIPTION', $this->context->customer->id_lang),
+                    )
+            );
+
+            $payment_options .= $this->context->smarty->fetch(PAYS_PS_DIR . '/views/templates/hook/payment_paymentgateway.tpl');
         }
 
         return $payment_options;
-    }
-
-    public function getGatePaymentOption() {
-        $paymentOption = new PaymentOption();
-        $paymentOption->setCallToActionText(' ' . $this->l('ONLINE PAYMENT'))
-                ->setModuleName($this->name)
-                ->setAction($this->context->link->getModuleLink($this->name, 'payment', array(), null, null, null, true))
-                ->setInputs(array(
-                    'token' => array(
-                        'name' => 'optionHash',
-                        'type' => 'hidden',
-                        'value' => $this->getOptionHash('PAYMENTGATEWAY'),
-                    ),
-                ))
-                ->setAdditionalInformation($this->context->smarty->fetch('module:' . $this->name . '/views/templates/front/option_paymentgateway.tpl'))
-                ->setLogo(Media::getMediaPath(_MODULE_DIR_ . $this->name . '/views/img/pays_ps-payment.png'));
-        return $paymentOption;
     }
 
     public function hookPaymentReturn($params) {
         if (!$this->isActive()) {
             return;
         }
-        $payment = new PaysPsModelPayment($params['order']->id_cart);
+        $payment = new PaysPsModelPayment($params['objOrder']->id_cart);
         if ($payment instanceof PaysPsModelPayment) {
             $statusMsg = $paymentUrl = '';
             $response = $payment->getLastResponse();
@@ -399,8 +376,8 @@ class Pays_PS extends PaymentModule {
                 }
             }
 
-            if ($this->isOrderForPayment($params['order'])) {
-                $paymentUrl = $this->createPaymentUrl($params['order']);
+            if ($this->isOrderForPayment($params['objOrder'])) {
+                $paymentUrl = $this->createPaymentUrl($params['objOrder']);
             }
 
             $this->context->smarty->assign(array(
@@ -409,7 +386,7 @@ class Pays_PS extends PaymentModule {
                 'paysPsStatusMsg' => $statusMsg,
                 'paysPsPaymentUrl' => $paymentUrl
             ));
-            return $this->context->smarty->fetch('module:' . $this->name . '/views/templates/hook/payment_return.tpl');
+            return $this->context->smarty->fetch(PAYS_PS_DIR . '/views/templates/hook/payment_return.tpl');
         }
     }
 
@@ -440,37 +417,19 @@ class Pays_PS extends PaymentModule {
         }
     }
 
+    public function hookDisplayHeader() {
+        if (!$this->active) {
+            return;
+        }
+        $this->context->controller->addCSS($this->_path . '/views/css/front.css', 'all');
+    }
+
     public function hookActionAdminControllerSetMedia($params) {
         if (!$this->active) {
             return;
         }
         $this->context->controller->addJS($this->_path . '/views/js/admin-order-detail.js');
         $this->context->controller->addCSS($this->_path . '/views/css/admin.css');
-    }
-
-    public function hookActionFrontControllerSetMedia($params) {
-        if (!$this->isActive()) {
-            return;
-        }
-        // Only on order page
-        if ('order' === $this->context->controller->php_self) {
-            $this->context->controller->registerJavascript(
-                    'pays_ps-front',
-                    'modules/' . $this->name . '/views/js/front.js',
-                    array(
-                        'priority' => 301,
-                        'attribute' => 'async',
-                        'position' => 'bottom',
-                    )
-            );
-            $this->context->controller->registerStylesheet(
-                    'pays_ps-front',
-                    'modules/' . $this->name . '/views/css/front.css',
-                    array(
-                        'priority' => 301
-                    )
-            );
-        }
     }
 
     public function hookDisplayOrderDetail($params) {
@@ -486,6 +445,10 @@ class Pays_PS extends PaymentModule {
         }
     }
 
+    /**
+     *
+     * @since PrestaShop 1.6.1.0
+     */
     public function hookActionEmailAddAfterContent($params) {
         if (!$this->isActive()) {
             return;
@@ -582,10 +545,10 @@ class Pays_PS extends PaymentModule {
             ),
             'input' => array(
                 array(
+                    'id' => 'info_registering',
                     'type' => 'html',
                     'label' => '',
-                    'name' => 'info',
-                    'html_content' => '<div style="margin-top:8px"><em>' . $this->l('You will receive this information after registering at Pays.cz') . '</em></div>'
+                    'name' => '<div style="margin-top:8px"><em>' . $this->l('You will receive this information after registering at Pays.cz') . '</em></div>'
                 ),
                 array(
                     'type' => 'text',
@@ -617,10 +580,10 @@ class Pays_PS extends PaymentModule {
                     'desc' => $this->l('This message will be displayed to the customer when selecting the payment type.')
                 ),
                 array(
+                    'id' => 'info_currencies',
                     'type' => 'html',
                     'label' => $this->l('Supported currencies:'),
-                    'name' => 'currencies',
-                    'html_content' => '<div style="margin-top:8px">' . implode(', ', $this->modelCurrency->getAll()) . '</div>'
+                    'name' => '<div style="margin-top:8px">' . implode(', ', $this->modelCurrency->getAll()) . '</div>'
                 )
             ),
             'submit' => array(
@@ -719,7 +682,7 @@ class Pays_PS extends PaymentModule {
             $params['Lang'] = $this->paysPsAllowedLanguages[$language->iso_code];
         }
 
-        $url = 'https://www.pays.cz/paymentorder?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        $url = 'https://www.pays.cz/paymentorder?' . http_build_query($params, '', '&');
 
         return $url;
     }

@@ -26,10 +26,10 @@
             </em>
         </p>
         <table>
-            <tr><td>{l s='Successful online payment:' mod='pays_ps'}</td><td><code>{$paysPsSuccessOnlineURL|escape:'html'}</code></td></tr>
-            <tr><td>{l s='Successful offline payment:' mod='pays_ps'}</td><td><code>{$paysPsSuccessOfflineURL|escape:'html'}</code></td></tr>
-            <tr><td>{l s='Error payment:' mod='pays_ps'}</td><td><code>{$paysPsErrorURL|escape:'html'}</code></td></tr>
-            <tr><td>{l s='Background confirmation:' mod='pays_ps'}</td><td><code>{$paysPsConfirmationURL|escape:'html'}</code></td></tr>
+            <tr><td>{l s='Successful online payment:' mod='pays_ps'}</td><td><code>{$paysPsSuccessOnlineURL|escape:'html':'UTF-8'}</code></td></tr>
+            <tr><td>{l s='Successful offline payment:' mod='pays_ps'}</td><td><code>{$paysPsSuccessOfflineURL|escape:'html':'UTF-8'}</code></td></tr>
+            <tr><td>{l s='Error payment:' mod='pays_ps'}</td><td><code>{$paysPsErrorURL|escape:'html':'UTF-8'}</code></td></tr>
+            <tr><td>{l s='Background confirmation:' mod='pays_ps'}</td><td><code>{$paysPsConfirmationURL|escape:'html':'UTF-8'}</code></td></tr>
         </table>	
     </div>
     <div style="float:left">{l s='Payment gateway operator and support:' mod='pays_ps'} <a href="https://www.pays.cz" target="_blank">pays.cz s.r.o.</a></div>

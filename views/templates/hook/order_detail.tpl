@@ -16,15 +16,17 @@
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  *}
+ 
  <div id="pays_ps-order-detail" class="box">
-	<h4>
+	<h3>
 		 {l s='Payment' mod='pays_ps'}
-	</h4>
+	</h3>
     <p>{l s='The order is not paid. If the payment has been made, wait until the payment is complete.' mod='pays_ps'}</p>
-    <p>
-        <img src="{$paysPsLogoPath|escape:'html'}" height="32" alt=""></p>
-    <p>
-        <a href="{$paysPsPaymentUrl|escape:'html'}" class="btn btn-primary">{l s='Pay now through Pays' mod='pays_ps'}</a>
+    <h4>
+        <img src="{$paysPsLogoPath|escape:'html':'UTF-8'}" height="32" alt=""></p>
+    </h4>
+        <a href="{$paysPsPaymentUrl|escape:'html':'UTF-8'}" class="button btn btn-default button-medium">
+            <span>{l s='Pay now through Pays' mod='pays_ps'}<i class="icon-chevron-right right"></i></span>
+        </a>
     </p>
-    
 </div>

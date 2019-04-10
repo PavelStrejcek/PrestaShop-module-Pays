@@ -1,4 +1,13 @@
-.pays_ps-option-img {
-    width: 100px;
-    margin-left: 20px;
+/* Pays payment module */
+.pays_ps-option{
+	background-color: #fbfbfb;
+    border-radius: 4px;
+}
+.pays_ps-option h2 {
+    font-size: 17px;
+    font-weight: bold;
+    color: #333;
+}
+.pays_ps-option h2 img {
+    margin-right: 15px;
 }

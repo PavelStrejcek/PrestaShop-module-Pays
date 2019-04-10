@@ -20,7 +20,7 @@
  <div id="pays_ps-payment">
     <br/>
 	<h4>
-		<img src="{$paysPsLogoPath|escape:'html'}" height="32" alt=""> &nbsp;&nbsp;{l s='Payment Gateway Pays ' mod='pays_ps'}
+		<img src="{$paysPsLogoPath|escape:'html':'UTF-8'}" height="32" alt=""> &nbsp;&nbsp;{l s='Payment Gateway Pays ' mod='pays_ps'}
 	</h4>
 
 		
@@ -41,7 +41,7 @@
             {foreach from=$paysPsResponses item=paysPsResponse}
             <tr>
                 <td>{dateFormat date=$paysPsResponse->date_add full=1}</td>
-                <td>{$paysPsResponse->payment_order_id|escape:'html'}</td>
+                <td>{$paysPsResponse->payment_order_id|escape:'html':'UTF-8'}</td>
                 <td>{if $paysPsResponse->payment_order_status_id == 2}
                         {l s='UNREALIZED' mod='pays_ps'}
                     {elseif $paysPsResponse->payment_order_status_id == 3}
@@ -50,9 +50,9 @@
                         {l s='UNKNOWN' mod='pays_ps'}
                     {/if}
                 </td>
-                <td>{$paysPsResponse->currency_id|escape:'html'}</td>
-                <td>{Tools::displayPrice($paysPsResponse->getPrice(),$paysPsResponse->currency_id)|escape:'html'}</td>
-                <td>{$paysPsResponse->payment_order_status_description|escape:'html'}</td>
+                <td>{$paysPsResponse->currency_id|escape:'html':'UTF-8'}</td>
+                <td>{$paysPsResponse->getPrice()|escape:'html':'UTF-8'}</td>
+                <td>{$paysPsResponse->payment_order_status_description|escape:'html':'UTF-8'}</td>
             </tr>
             {/foreach}
             </tbody>
@@ -66,7 +66,7 @@
                 <p>{l s='Messages:' mod='pays_ps'}</p>
                 <ul class="text-info">
                     {foreach $paysPsMsgs as $msg}
-                        <li{if $msg['object']->type == 'ERROR'} class="pays_ps-messsage-error"{/if}>{dateFormat date=$msg['object']->date_add full=1} {$msg['translation']|escape:'html'}</li>
+                        <li{if $msg['object']->type == 'ERROR'} class="pays_ps-messsage-error"{/if}>{dateFormat date=$msg['object']->date_add full=1} {$msg['translation']|escape:'html':'UTF-8'}</li>
                         {/foreach}
                 </ul>
             
@@ -76,7 +76,7 @@
         {if !empty($paysPsPaymentUrl)}
         <div class="panel">
             <p>{l s='Payment URL:' mod='pays_ps'}</p>
-            <p><code>{$paysPsPaymentUrl|escape:'html'}</code></p>
+            <p><code>{$paysPsPaymentUrl|escape:'html':'UTF-8'}</code></p>
         </div>
         {/if}
 

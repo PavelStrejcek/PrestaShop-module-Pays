@@ -17,9 +17,9 @@
  * Module development: www.BrainWeb.cz
  *}
 <div class="panel">
-    <div style="float:right;font-size: 120%;font-weight:bold;"><a href = "{$paysPsModulePath|escape:'html'}/doc/Navod_k_pouziti_modulu_Pays.pdf" target="_blank"><img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" height="20"> {l s='Instructions for Use (PDF)' mod='pays_ps'}</a></div>
+    <div style="float:right;font-size: 120%;font-weight:bold;"><a href = "{$paysPsModulePath|escape:'html':'UTF-8'}/doc/Navod_k_pouziti_modulu_Pays_v1.0-PS1.6.pdf" target="_blank"><img alt="" src="{$paysPsModulePath|escape:'html':'UTF-8'}/views/img/info-icon.png" height="20"> {l s='Instructions for Use (PDF)' mod='pays_ps'}</a></div>
     <h1>
         <a href = "https://www.pays.cz/" target="_blank">
-        <img src="{$paysPsLogoPath|escape:'html'}" alt="Pays" style="vertical-align:-45%"></a>
+        <img src="{$paysPsLogoPath|escape:'html':'UTF-8'}" alt="Pays" style="vertical-align:-45%"></a>
         &nbsp;{l s='Payment gateway module for' mod='pays_ps'} <a href = "https://www.pays.cz/" target="_blank">Pays.cz</a>
     </h1>

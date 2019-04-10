@@ -19,7 +19,7 @@
 
 $(function () {
 	if ($('#pays_ps-payment').length) {
-		$('#pays_ps-payment').detach().appendTo("#formAddPaymentPanel");
+		$('#pays_ps-payment').detach().appendTo($("#formAddPayment").closest(".panel"));
 	}
 
 });

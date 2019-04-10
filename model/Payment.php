@@ -59,7 +59,8 @@ class PaysPsModelPayment extends ObjectModel {
             $result = Db::getInstance()->executeS($sql);
             if (empty($result[0]['cnt'])) {
                 $newEntity = array(
-                    self::$definition['primary'] => (int) $id
+                    self::$definition['primary'] => (int) $id,
+                    'date_add' => date('Y-m-d H:i:s')
                 );
 
                 Db::getInstance()->insert(self::$definition['table'], $newEntity, true);

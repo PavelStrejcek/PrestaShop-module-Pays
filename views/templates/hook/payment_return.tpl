@@ -17,15 +17,15 @@
  * Module development: www.BrainWeb.cz
  *}
 <section id="content" class="pays_ps-payment">
-	<img src="{$paysPsLogoPath|escape:'html'}" height="32" alt="">
+	<img src="{$paysPsLogoPath|escape:'html':'UTF-8'}" height="32" alt="">
     <h3>{l s='Information about using Pays payment gateway' mod='pays_ps'}</h3>
     {if !empty($paysPsStatusMsg)}
-        <p class="well"><strong>{$paysPsStatusMsg|escape:'html'}</strong></p>
+        <p class="well"><strong>{$paysPsStatusMsg|escape:'html':'UTF-8'}</strong></p>
 	{elseif !empty($paysPsMessages)}
 
 		<ul>
 			{foreach $paysPsMessages as $message}
-				<li{if $message['object']->type == 'ERROR'} class="pays_ps-messsage-error"{/if}>{$message['translation']|escape:'html'}</li>
+				<li{if $message['object']->type == 'ERROR'} class="pays_ps-messsage-error"{/if}>{$message['translation']|escape:'html':'UTF-8'}</li>
 				{/foreach}
 		</ul>
 
@@ -34,7 +34,9 @@
 	{/if}
     
     {if !empty($paysPsPaymentUrl)}
-        <p><a href="{$paysPsPaymentUrl|escape:'html'}" class="btn btn-primary">{l s='New payment' mod='pays_ps'}</a></p>
+        <p><a href="{$paysPsPaymentUrl|escape:'html':'UTF-8'}" class="button btn btn-default button-medium">
+                <span>{l s='New payment' mod='pays_ps'}<i class="icon-chevron-right right"></i></span>
+           </a></p>
     {/if}
 </section>
 
