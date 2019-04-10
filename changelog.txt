@@ -1,0 +1,6 @@
+2019/03/15 (version 1.0.0)
+- General: first stable version of the module
+
+2019/03/29 (version 1.0.1)
+- General: changed module settings
+- Bug:     fixes bug with language of comunication URLs 
