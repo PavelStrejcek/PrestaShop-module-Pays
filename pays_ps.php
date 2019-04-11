@@ -38,7 +38,7 @@ class Pays_PS extends PaymentModule {
     public function __construct() {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6');
