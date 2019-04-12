@@ -19,15 +19,15 @@
 
 $(function () {
 	window.paysPsOrderClicked = false;
-	$('#payment-confirmation').click(function (e) {
-
-		if (paysPsOrderClicked) {
-			return false;
-		}
-		window.paysPsOrderClicked = true;
-		
-		return true;
-	});
-    $('.payment-option label img[src*="pays_ps-payment"]').addClass('pays_ps-option-img');
-
+    if (! window.paysPsClickEventDefined) {
+        $('#payment-confirmation').click(function (e) {
+            if (window.paysPsOrderClicked) {
+                return false;
+            }
+            window.paysPsOrderClicked = true;
+            return true;
+        });
+        $('.payment-option label img[src*="pays_ps-payment"]').addClass('pays_ps-option-img');
+        window.paysPsClickEventDefined = true;
+    }
 });
