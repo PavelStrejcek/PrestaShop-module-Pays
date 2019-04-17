@@ -19,9 +19,9 @@ Connection to the Pays payment gateway.
 Further information (in Czech) is in the Instructions for Use:
 [doc/Navod_k_pouziti_modulu_Pays_v1.0-PS1.6.pdf](doc/Navod_k_pouziti_modulu_Pays_v1.0-PS1.6.pdf)
 
-Author:    Pavel Strejček <pavel.strejcek@brainweb.cz>
-Copyright: 2019 Pavel Strejček
-License:   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
+Author:    Pavel Strejček <pavel.strejcek@brainweb.cz>  
+Copyright: 2019 Pavel Strejček  
+License:   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0  
 
-Payment gateway operator and support: www.Pays.cz
+Payment gateway operator and support: www.Pays.cz  
 Module development: www.BrainWeb.cz
