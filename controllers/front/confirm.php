@@ -11,7 +11,7 @@
  * obtain it through the world-wide-web, please send an email
  * to application@brainweb.cz so we can send you a copy..
  *
- * @author    Pavel Strejček <pavel.strejcek@brainweb.cz>
+ * @author    Pavel Strejček <aplikace@brainweb.cz>
  * @copyright 2019 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
