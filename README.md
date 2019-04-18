@@ -1,6 +1,8 @@
 # Module Pays for PrestaShop 1.7
 
-Connection to the Pays payment gateway.
+Connection to the Pays payment gateway.  
+
+![Logo Pays](views/img/pays_ps-payment.png)
 
 ## Module functions
 

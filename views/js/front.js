@@ -18,7 +18,7 @@
  */
 
 $(function () {
-	window.paysPsOrderClicked = false;
+    window.paysPsOrderClicked = false;
     if (! window.paysPsClickEventDefined) {
         $('#payment-confirmation').click(function (e) {
             if (window.paysPsOrderClicked) {
