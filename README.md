@@ -1,6 +1,8 @@
 # Module Pays for PrestaShop 1.6
 
-Connection to the Pays payment gateway.
+Connection to the Pays payment gateway.  
+
+![Logo Pays](views/img/pays_ps-payment.png)
 
 ## Module functions
 
@@ -16,7 +18,7 @@ Connection to the Pays payment gateway.
 
 ## Further information
 
-Further information (in Czech) is in the Instructions for Use:
+Further information (in Czech) is in the Instructions for Use:  
 [doc/Navod_k_pouziti_modulu_Pays_v1.1-PS1.6.pdf](doc/Navod_k_pouziti_modulu_Pays_v1.1-PS1.6.pdf)
 
 Author:    Pavel Strejček <aplikace@brainweb.cz>  
