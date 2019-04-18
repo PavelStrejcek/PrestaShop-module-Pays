@@ -5,6 +5,6 @@
 - General: changed module settings
 - Bug:     fixes bug with language of comunication URLs 
 
-2019/04/12 (version 1.0.2)
+2019/04/19 (version 1.0.2)
 - Bug:     fixed untranslated messages with long code
 - General: preventing order submission error when re-inserting javascript files 
