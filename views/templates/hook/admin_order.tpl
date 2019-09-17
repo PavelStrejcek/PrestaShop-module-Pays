@@ -51,7 +51,7 @@
                     {/if}
                 </td>
                 <td>{$paysPsResponse->currency_id|escape:'html'}</td>
-                <td>{Tools::displayPrice($paysPsResponse->getPrice(),$paysPsResponse->currency_id)|escape:'html'}</td>
+                <td>{$paysPsResponse->getPrice()|escape:'html'}</td>
                 <td>{$paysPsResponse->payment_order_status_description|escape:'html'}</td>
             </tr>
             {/foreach}

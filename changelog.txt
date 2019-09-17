@@ -1,10 +1,13 @@
-2019/03/15 (version 1.0.0)
-- General: first stable version of the module
-
-2019/03/29 (version 1.0.1)
-- General: changed module settings
-- Bug:     fixes bug with language of comunication URLs 
+2019/09/17 (version 1.0.3)
+- Bug:     fixed issue in PS 1.7.6 regarding currency and order detail in administration
 
 2019/04/19 (version 1.0.2)
 - Bug:     fixed untranslated messages with long code
 - General: preventing order submission error when re-inserting javascript files 
+
+2019/03/29 (version 1.0.1)
+- General: changed module settings
+- Bug:     fixes bug with language of comunication URLs
+
+2019/03/15 (version 1.0.0)
+- General: first stable version of the module
