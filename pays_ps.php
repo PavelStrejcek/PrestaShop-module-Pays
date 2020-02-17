@@ -38,7 +38,7 @@ class Pays_PS extends PaymentModule {
     public function __construct() {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.1';
+        $this->version = '1.0.2';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6');
@@ -136,7 +136,8 @@ class Pays_PS extends PaymentModule {
                 Configuration::deleteByName('PAYS_PS_PAYMENT_DESCRIPTION') &&
                 Configuration::deleteByName('PAYS_PS_ORDER_STATUS_PAYMENT_AWAITING') &&
                 Configuration::deleteByName('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED') &&
-                Configuration::deleteByName('PAYS_PS_ORDER_STATUS_PAYMENT_UNREALIZED');
+                Configuration::deleteByName('PAYS_PS_ORDER_STATUS_PAYMENT_UNREALIZED') &&
+                Configuration::deleteByName('PAYS_PS_SIMPLE_VIEW');
     }
 
     public function processSQL($file) {
@@ -346,11 +347,13 @@ class Pays_PS extends PaymentModule {
             $linkParams = array(
                 'optionHash' => $this->getOptionHash('PAYMENTGATEWAY')
             );
+            $id_lang = $this->context->customer->id_lang ? $this->context->customer->id_lang : ($this->context->cart->id_lang ? $this->context->cart->id_lang : 1);
             $this->context->smarty->assign(
                     array(
                         'paysPsPaymentIconPath' => _MODULE_DIR_ . $this->name . '/views/img/pays_ps-payment.png',
                         'paysPsPaymentGatewayLink' => $this->context->link->getModuleLink($this->name, 'payment', $linkParams, null, null, null, true),
-                        'paysPsPaymentDescription' => Configuration::get('PAYS_PS_PAYMENT_DESCRIPTION', $this->context->customer->id_lang),
+                        'paysPsPaymentDescription' => Configuration::get('PAYS_PS_PAYMENT_DESCRIPTION', $id_lang),
+                        'paysPsSimpleView' => Configuration::get('PAYS_PS_SIMPLE_VIEW'),
                     )
             );
 
@@ -421,7 +424,7 @@ class Pays_PS extends PaymentModule {
         if (!$this->active) {
             return;
         }
-        $this->context->controller->addCSS($this->_path . '/views/css/front.css', 'all');
+        $this->context->controller->addCSS($this->_path . '/views/css/front-v102.css', 'all');
     }
 
     public function hookActionAdminControllerSetMedia($params) {
@@ -483,6 +486,7 @@ class Pays_PS extends PaymentModule {
             $pays_ps_merchant = trim(Tools::getValue('PAYS_PS_MERCHANT'));
             $pays_ps_shop = trim(Tools::getValue('PAYS_PS_SHOP'));
             $pays_ps_password = trim(Tools::getValue('PAYS_PS_PASSWORD'));
+            $pays_ps_simple_view = (bool) Tools::getValue('PAYS_PS_SIMPLE_VIEW');
 
             $pays_ps_payment_description = array();
             foreach (Language::getLanguages(false) as $lang) {
@@ -504,6 +508,7 @@ class Pays_PS extends PaymentModule {
                     Configuration::updateValue('PAYS_PS_PASSWORD', $pays_ps_password);
                 }
                 Configuration::updateValue('PAYS_PS_PAYMENT_DESCRIPTION', $pays_ps_payment_description);
+                Configuration::updateValue('PAYS_PS_SIMPLE_VIEW', $pays_ps_simple_view);
                 $output .= $this->displayConfirmation($this->l('Configuration updated'));
             } else {
                 $output .= $this->displayError($this->l('Nothing has been saved.'));
@@ -580,6 +585,25 @@ class Pays_PS extends PaymentModule {
                     'desc' => $this->l('This message will be displayed to the customer when selecting the payment type.')
                 ),
                 array(
+                    'type' => 'switch',
+                    'label' => $this->l('Simplified view of payment option:'),
+                    'name' => 'PAYS_PS_SIMPLE_VIEW',
+                    'is_bool' => false,
+                    'values' => array(
+                            array(
+                                    'id' => 'active_on',
+                                    'value' => 1,
+                                    'label' => $this->l('Yes')
+                            ),
+                            array(
+                                    'id' => 'active_off',
+                                    'value' => 0,
+                                    'label' => $this->l('No')
+                            )
+                    ),
+                    'desc' => $this->l('Activate if you have problems displaying the payment option when placing an order.'),
+                ),
+                array(
                     'id' => 'info_currencies',
                     'type' => 'html',
                     'label' => $this->l('Supported currencies:'),
@@ -632,12 +656,14 @@ class Pays_PS extends PaymentModule {
             foreach ($helper->languages as $lang) {
                 $helper->fields_value['PAYS_PS_PAYMENT_DESCRIPTION'][$lang['id_lang']] = Tools::getValue('PAYS_PS_PAYMENT_DESCRIPTION_' . (int) $lang['id_lang']);
             }
+            $helper->fields_value['PAYS_PS_SIMPLE_VIEW'] = Tools::getValue('PAYS_PS_SIMPLE_VIEW');
         } else {
             $helper->fields_value['PAYS_PS_MERCHANT'] = Configuration::get('PAYS_PS_MERCHANT');
             $helper->fields_value['PAYS_PS_SHOP'] = Configuration::get('PAYS_PS_SHOP');
             foreach ($helper->languages as $lang) {
                 $helper->fields_value['PAYS_PS_PAYMENT_DESCRIPTION'][$lang['id_lang']] = Configuration::get('PAYS_PS_PAYMENT_DESCRIPTION', $lang['id_lang']);
             }
+            $helper->fields_value['PAYS_PS_SIMPLE_VIEW'] = Configuration::get('PAYS_PS_SIMPLE_VIEW');
         }
         return $helper->generateForm($fields_form);
     }

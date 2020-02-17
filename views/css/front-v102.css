@@ -1,0 +1,32 @@
+/* Pays payment module */
+.pays_ps-option{
+	background-color: #fbfbfb;
+    border-radius: 4px;
+}
+.pays_ps-option h2 {
+    font-size: 17px;
+    font-weight: bold;
+    color: #333;
+}
+.pays_ps-option h2 img {
+    margin-right: 15px;
+}
+p.payment_module.pays_ps_payment_module a {
+    padding-left: 10px; 
+}
+p.payment_module.pays_ps_payment_module a:after {
+    display: block;
+    content: "\f054";
+    position: absolute;
+    right: 15px;
+    margin-top: -11px;
+    top: 50%;
+    font-family: "FontAwesome";
+    font-size: 25px;
+    height: 22px;
+    width: 14px;
+    color: #777;
+}
+.pays_ps_payment_module img {
+    margin: 0 10px 0 0; 
+}

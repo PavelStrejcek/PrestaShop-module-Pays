@@ -16,6 +16,13 @@
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  *}
+{if $paysPsSimpleView}
+    <p class="payment_module pays_ps_payment_module">
+	<a href="{$paysPsPaymentGatewayLink|escape:'html':'UTF-8'}" title="{l s='Pays Payment Gateway' mod='pays_ps'}">
+		<img src="{$paysPsPaymentIconPath|escape:'html':'UTF-8'}" alt="" width="100" > {l s='Pays Payment Gateway' mod='pays_ps'}&nbsp;<span>({$paysPsPaymentDescription|escape:'html':'UTF-8'})</span>
+	</a>
+    </p>
+{else}
  <div class="payment_module panel panel-default pays_ps-option">
 	<div class="panel-body">
         <h2><img src="{$paysPsPaymentIconPath|escape:'html':'UTF-8'}" alt="" width="100" > {l s='Pays Payment Gateway' mod='pays_ps'}</h2>
@@ -52,3 +59,4 @@
         });
     });
 </script>
+{/if}
