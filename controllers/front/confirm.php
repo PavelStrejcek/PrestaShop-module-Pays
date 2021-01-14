@@ -72,7 +72,7 @@ class Pays_PsConfirmModuleFrontController extends ModuleFrontController {
             $this->paysPsMsgs['MODULE_confirmationSignedStatusMissing'] = true;
             $this->paysPsResponseFailed = true;
         } elseif ($signed && $signedPaymentStatus == 3) {
-            $this->paysPsMsgs['MODULE_confirmationSignedStatus_' . $signedPaymentStatus] = array($amount);
+            $this->paysPsMsgs['MODULE_confirmationSignedStatus_' . $signedPaymentStatus] = array($amount . ' ' . Tools::getValue('CurrencyID', null));
         } elseif ($signed) {
             $this->paysPsMsgs['MODULE_confirmationSignedStatus_' . $signedPaymentStatus] = true;
         }
