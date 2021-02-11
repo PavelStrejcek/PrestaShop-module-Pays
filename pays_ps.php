@@ -123,6 +123,7 @@ class Pays_PS extends PaymentModule {
                 $this->registerHook('actionFrontControllerSetMedia') &&
                 $this->registerHook('displayOrderDetail') &&
                 $this->registerHook('actionEmailAddAfterContent') &&
+                $this->registerHook('displayPaysPsPayOption') &&
                 Configuration::updateValue('PAYS_PS_PAYMENT_DESCRIPTION', $paymentDescriptions);
     }
 
@@ -354,6 +355,7 @@ class Pays_PS extends PaymentModule {
 
         $this->context->smarty->assign(array(
             'paysPsPaymentDescription' => Configuration::get('PAYS_PS_PAYMENT_DESCRIPTION', $this->context->customer->id_lang),
+            'hookDisplayPaysPsPayOption' => Hook::exec('displayPaysPsPayOption', $params),
         ));
 
         $currency = new Currency($params['cart']->id_currency);

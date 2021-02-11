@@ -21,4 +21,5 @@
 <div>{$paysPsPaymentDescription}</div>
 <p><a href="https://www.pays.cz/" target="_blank">www.pays.cz</a></p>
 
+{$hookDisplayPaysPsPayOption nofilter}
 
