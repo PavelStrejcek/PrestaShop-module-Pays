@@ -353,15 +353,17 @@ class Pays_PS extends PaymentModule {
             return array();
         }
 
+        $hookDisplayPaysPsPayOption = Hook::exec('displayPaysPsPayOption', $params);
+
         $this->context->smarty->assign(array(
             'paysPsPaymentDescription' => Configuration::get('PAYS_PS_PAYMENT_DESCRIPTION', $this->context->customer->id_lang),
-            'hookDisplayPaysPsPayOption' => Hook::exec('displayPaysPsPayOption', $params),
+            'hookDisplayPaysPsPayOption' => $hookDisplayPaysPsPayOption,
         ));
 
         $currency = new Currency($params['cart']->id_currency);
 
         $payment_options = array();
-        if ($this->modelCurrency->isCurrencyAvailable($currency->iso_code)) {
+        if ($this->modelCurrency->isCurrencyAvailable($currency->iso_code) || $hookDisplayPaysPsPayOption) {
             $payment_options[] = $this->getGatePaymentOption();
         }
 
