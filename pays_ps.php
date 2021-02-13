@@ -124,6 +124,7 @@ class Pays_PS extends PaymentModule {
                 $this->registerHook('displayOrderDetail') &&
                 $this->registerHook('actionEmailAddAfterContent') &&
                 $this->registerHook('displayPaysPsPayOption') &&
+                $this->registerHook('actionPaysPsPaymentUrlAmount') &&
                 Configuration::updateValue('PAYS_PS_PAYMENT_DESCRIPTION', $paymentDescriptions);
     }
 
@@ -706,12 +707,26 @@ class Pays_PS extends PaymentModule {
         $customer = new Customer($order->id_customer);
         $currency = new Currency($order->id_currency);
         $language = new Language($order->id_lang);
+        $amount = $order->total_paid_tax_incl - $order->getTotalPaid();
+        
+        $hookResult = Hook::exec('actionPaysPsPaymentUrlAmount', [
+            'amount' => $amount,
+            'currency' => $currency,
+            'order' => $order
+        ], null, true);
+        $hookResult = is_array($hookResult) ? end($hookResult) : $hookResult;
+        if (empty($hookResult['amount']) || empty($hookResult['currency_iso_code'])) {
+            $isoCode = $currency->iso_code;
+        } else {
+            $amount = $hookResult['amount'];
+            $isoCode = $hookResult['currency_iso_code'];
+        }
 
         $params = array(
             'Merchant' => Configuration::get('PAYS_PS_MERCHANT'),
             'Shop' => Configuration::get('PAYS_PS_SHOP'),
-            'Currency' => $currency->iso_code,
-            'Amount' => number_format(($order->total_paid_tax_incl - $order->getTotalPaid()) * 100, 0, '.', ''),
+            'Currency' => $isoCode,
+            'Amount' => number_format($amount * 100, 0, '.', ''),
             'MerchantOrderNumber' => $order->reference
         );
 
