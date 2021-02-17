@@ -12,13 +12,14 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 Pavel Strejček
+ * @copyright 2019 - 2021 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  */
-class PaysPsModelPayment extends ObjectModel {
+class PaysPsModelPayment extends ObjectModel
+{
 
     /** @var int */
     public $id_customer;
@@ -50,7 +51,8 @@ class PaysPsModelPayment extends ObjectModel {
         ),
     );
 
-    public function __construct($id = null, $id_lang = null, $id_shop = null, $createNonExistent = false) {
+    public function __construct($id = null, $id_lang = null, $id_shop = null, $createNonExistent = false)
+    {
         if ($id && $createNonExistent) {
             $sql = new DbQuery();
             $sql->select('count(*) cnt')
@@ -69,7 +71,8 @@ class PaysPsModelPayment extends ObjectModel {
         parent::__construct($id, $id_lang, $id_shop);
     }
 
-    public function getPrestashopOrder() {
+    public function getPrestashopOrder()
+    {
         $sql = new DbQuery();
         $sql->select('o.id_order')
                 ->from('orders', 'o')
@@ -82,7 +85,8 @@ class PaysPsModelPayment extends ObjectModel {
         }
     }
 
-    public static function getByOrderReference($orderReference) {
+    public static function getByOrderReference($orderReference)
+    {
         $sql = new DbQuery();
         $sql->select('pa.id_cart')
                 ->from(self::$definition['table'], 'pa')
@@ -95,7 +99,8 @@ class PaysPsModelPayment extends ObjectModel {
         }
     }
 
-    public function getLastResponse() {
+    public function getLastResponse()
+    {
         $sql = new DbQuery();
         $sql->select('pr.payment_response_id')
                 ->from('pays_ps_response', 'pr')
@@ -109,10 +114,10 @@ class PaysPsModelPayment extends ObjectModel {
         return new PaysPsModelResponse($result[0]['payment_response_id']);
     }
 
-    public function getResponses() {
+    public function getResponses()
+    {
         $responses = new PrestaShopCollection('PaysPsModelResponse');
         $responses->where('id_cart', '=', $this->id)->orderBy('date_add', 'asc')->orderBy('payment_response_id', 'asc');
         return $responses;
     }
-
 }

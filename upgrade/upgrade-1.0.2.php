@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 Pavel Strejček
+ * @copyright 2019 - 2021 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -22,6 +22,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_1_0_2($module) {
+function upgrade_module_1_0_2($module)
+{
     return $module->processSQL('upgrade/sql/upgrade-1.0.2.sql');
 }

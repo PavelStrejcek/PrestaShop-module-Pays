@@ -12,15 +12,16 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 Pavel Strejček
+ * @copyright 2019 - 2021 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  */
-class PaysPsModelOrderState extends OrderState {
-
-    public static function findOneByTemplateName($templateName) {
+class PaysPsModelOrderState extends OrderState
+{
+    public static function findOneByTemplateName($templateName)
+    {
         $sql = new DbQuery();
         $sql->select('os.id_order_state')
                 ->from('order_state', 'os')
@@ -40,7 +41,8 @@ class PaysPsModelOrderState extends OrderState {
      * @param array $names
      * @return \self
      */
-    public static function findOneByNames($names) {
+    public static function findOneByNames($names)
+    {
         array_walk($names, array('PaysPsModelDb', 'escapeCallback'));
         $sql = new DbQuery();
         $sql->select('os.id_order_state')
@@ -55,5 +57,4 @@ class PaysPsModelOrderState extends OrderState {
             return new self($result[0]['id_order_state']);
         }
     }
-
 }

@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 Pavel Strejček
+ * @copyright 2019 - 2021 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -22,14 +22,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class Pays_PsPaymentModuleFrontController extends ModuleFrontController {
-
+class Pays_PsPaymentModuleFrontController extends ModuleFrontController
+{
     public $paysPsMsgs = array();
 
     /**
      * @see FrontController::postProcess()
      */
-    public function postProcess() {
+    public function postProcess()
+    {
         $cart = $this->context->cart;
         if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$this->module->active) {
             Tools::redirect('index.php?controller=order&step=1');
@@ -77,5 +78,4 @@ class Pays_PsPaymentModuleFrontController extends ModuleFrontController {
         $url = $this->module->createPaymentUrl($order);
         Tools::redirect($url);
     }
-
 }

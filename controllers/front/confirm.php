@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 Pavel Strejček
+ * @copyright 2019 - 2021 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -22,15 +22,16 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class Pays_PsConfirmModuleFrontController extends ModuleFrontController {
-
+class Pays_PsConfirmModuleFrontController extends ModuleFrontController
+{
     public $paysPsMsgs = array();
     public $paysPsResponseFailed = false;
 
     /**
      * @see FrontController::postProcess()
      */
-    public function postProcess() {
+    public function postProcess()
+    {
         if (!$this->module->active) {
             http_response_code(500);
             die($this->module->l('Pays module is not active', 'confirm'));
@@ -106,7 +107,7 @@ class Pays_PsConfirmModuleFrontController extends ModuleFrontController {
                                     'order' => $order
                                         ], null, true);
                         $hookResult = is_array($hookResult) ? end($hookResult) : $hookResult;
-                        if ( ! empty($hookResult['amount']) && ! empty($hookResult['currency'])) {
+                        if (! empty($hookResult['amount']) && ! empty($hookResult['currency'])) {
                             $amount = $hookResult['amount'];
                             $currency = $hookResult['currency'];
                         }
@@ -131,5 +132,4 @@ class Pays_PsConfirmModuleFrontController extends ModuleFrontController {
         http_response_code(202);
         die('Accepted');
     }
-
 }

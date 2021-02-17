@@ -12,13 +12,14 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 Pavel Strejček
+ * @copyright 2019 - 2021 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  */
-class PaysPsModelUtils {
+class PaysPsModelUtils
+{
 
     /**
      * Comparing floats
@@ -28,7 +29,8 @@ class PaysPsModelUtils {
      * @param float $epsilon default is PHP_FLOAT_EPSILON for PHP 7.2+, or 0.00001
      * @return int Returns 0 if the two operands are equal, 1 if the left operand is larger than the right operand, -1 otherwise.
      */
-    static public function floatcmp($left, $right, $epsilon = null) {
+    public static function floatcmp($left, $right, $epsilon = null)
+    {
         $left = (float) $left;
         $right = (float) $right;
 
@@ -46,5 +48,4 @@ class PaysPsModelUtils {
         }
         return -1;
     }
-
 }

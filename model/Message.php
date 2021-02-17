@@ -12,13 +12,14 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 Pavel Strejček
+ * @copyright 2019 - 2021 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  */
-class PaysPsModelMessage extends ObjectModel {
+class PaysPsModelMessage extends ObjectModel
+{
 
     /** @var int */
     public $id_message;
@@ -62,7 +63,8 @@ class PaysPsModelMessage extends ObjectModel {
     );
     public static $messageList;
 
-    public function __construct($id = null, $id_lang = null, $id_shop = null, $createNonExistent = false) {
+    public function __construct($id = null, $id_lang = null, $id_shop = null, $createNonExistent = false)
+    {
         if ($id && $createNonExistent) {
             $sql = new DbQuery();
             $sql->select('count(*) cnt')
@@ -81,11 +83,13 @@ class PaysPsModelMessage extends ObjectModel {
         parent::__construct($id, $id_lang, $id_shop);
     }
 
-    public static function setMessageList($list) {
+    public static function setMessageList($list)
+    {
         self::$messageList = $list;
     }
 
-    public static function getOrderMessages($id_cart) {
+    public static function getOrderMessages($id_cart)
+    {
         $sql = new DbQuery();
         $sql->select('*')
                 ->from(self::$definition['table'], 'vm')
@@ -100,7 +104,8 @@ class PaysPsModelMessage extends ObjectModel {
         return $result;
     }
 
-    public static function addMessages($msgs, $id_cart) {
+    public static function addMessages($msgs, $id_cart)
+    {
         $combined = self::getCombinedMessages($msgs);
         foreach ($msgs as $msgCode => $msg) {
             $message = new self;
@@ -113,7 +118,8 @@ class PaysPsModelMessage extends ObjectModel {
         }
     }
 
-    public static function getTranslatedMessages($id_cart) {
+    public static function getTranslatedMessages($id_cart)
+    {
         $messages = self::getOrderMessages($id_cart);
         $result = array();
         foreach ($messages as $message) {
@@ -142,7 +148,8 @@ class PaysPsModelMessage extends ObjectModel {
      * @param array $messageInfo array values: true for translation, array(0=>string) for translation and sprintf, string as message untranslated
      * @return array
      */
-    public static function getCombinedMessages($messageInfo) {
+    public static function getCombinedMessages($messageInfo)
+    {
         $result = array();
         foreach ($messageInfo as $key => $message) {
             if (true === $message) {
@@ -167,5 +174,4 @@ class PaysPsModelMessage extends ObjectModel {
         }
         return $result;
     }
-
 }

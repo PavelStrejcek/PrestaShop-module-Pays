@@ -12,13 +12,14 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 Pavel Strejček
+ * @copyright 2019 - 2021 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  */
-class PaysPsModelResponse extends ObjectModel {
+class PaysPsModelResponse extends ObjectModel
+{
 
     /** @var int primary autoincrement */
     public $payment_response_id;
@@ -77,7 +78,8 @@ class PaysPsModelResponse extends ObjectModel {
         ),
     );
 
-    public function getPrestashopOrder() {
+    public function getPrestashopOrder()
+    {
         $sql = new DbQuery();
         $sql->select('o.id_order')
                 ->from('orders', 'o')
@@ -90,7 +92,8 @@ class PaysPsModelResponse extends ObjectModel {
         }
     }
 
-    public static function isLastResponse($paymentOrderId, $hash) {
+    public static function isLastResponse($paymentOrderId, $hash)
+    {
         $sql = new DbQuery();
         $sql->select('pr.payment_response_id')
                 ->from(self::$definition['table'], 'pr')
@@ -106,8 +109,8 @@ class PaysPsModelResponse extends ObjectModel {
         return $response->hash === $hash;
     }
 
-    public function getPrice() {
+    public function getPrice()
+    {
         return number_format((int) $this->currency_base_units ? (int) $this->amount / (int) $this->currency_base_units : (int) $this->amount, 2, '.', '');
     }
-
 }
