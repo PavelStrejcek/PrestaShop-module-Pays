@@ -18,20 +18,21 @@
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  */
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
-class Pays_PsValidationModuleFrontController extends ModuleFrontController {
-
+class Pays_PsValidationModuleFrontController extends ModuleFrontController
+{
     public $paysPsMsgs = array();
     public $paysPsResponseFailed = false;
 
     /**
      * @see FrontController::postProcess()
      */
-    public function postProcess() {
-        if (!$this->module->active) {
+    public function postProcess()
+    {
+        if (! $this->module->active) {
             Tools::redirect('index.php');
         }
 
@@ -41,7 +42,7 @@ class Pays_PsValidationModuleFrontController extends ModuleFrontController {
 
 
         $signed = $this->module->validateResponseHash(Tools::getValue('PaymentOrderID', null), Tools::getValue('MerchantOrderNumber', null), Tools::getValue('PaymentOrderStatusID', null), Tools::getValue('CurrencyID', null), Tools::getValue('Amount', null), Tools::getValue('CurrencyBaseUnits', null), Tools::getValue('hash', null));
-        if (Tools::getValue('hash', null) && !$signed) {
+        if (Tools::getValue('hash', null) && ! $signed) {
             $this->paysPsMsgs['MODULE_responseSignatureNotValid'] = array($_SERVER['QUERY_STRING']);
             $this->paysPsResponseFailed = true;
         }
@@ -55,7 +56,6 @@ class Pays_PsValidationModuleFrontController extends ModuleFrontController {
                 $customer = new Customer((int) $order->id_customer);
             }
         } else {
-
             $orders = Order::getByReference(Tools::getValue('MerchantOrderNumber', null));
             if ($orders instanceof PrestaShopCollection && $orders->count()) {
                 $order = $orders->getFirst();
@@ -67,10 +67,10 @@ class Pays_PsValidationModuleFrontController extends ModuleFrontController {
             }
         }
 
-        if (!Validate::isLoadedObject($order)) {
+        if (! Validate::isLoadedObject($order)) {
             $this->paysPsMsgs['MODULE_responseOrderNotExists'] = array(Tools::getValue('MerchantOrderNumber', null));
             $this->paysPsResponseFailed = true;
-        } elseif ($signed && !array_key_exists($signedPaymentStatus, $this->module->paysPsSignedStatusMessage)) {
+        } elseif ($signed && ! array_key_exists($signedPaymentStatus, $this->module->paysPsSignedStatusMessage)) {
             $this->paysPsMsgs['MODULE_responseSignedStatusMissing'] = true;
             $this->paysPsResponseFailed = true;
         } elseif ($signed && $signedPaymentStatus == 3) {
@@ -80,12 +80,12 @@ class Pays_PsValidationModuleFrontController extends ModuleFrontController {
         }
 
         if ($payment instanceof PaysPsModelPayment) {
-            if (!is_null($unsignedPaymentStatus) && array_key_exists($unsignedPaymentStatus, $this->module->paysPsUnsignedStatusMessage)) {
+            if (! is_null($unsignedPaymentStatus) && array_key_exists($unsignedPaymentStatus, $this->module->paysPsUnsignedStatusMessage)) {
                 $payment->gate_response_status = $unsignedPaymentStatus;
                 $payment->update(true);
             }
 
-            if ($signed && Validate::isLoadedObject($order) && !PaysPsModelResponse::isLastResponse(Tools::getValue('PaymentOrderID', null), Tools::getValue('hash', null))) {
+            if ($signed && Validate::isLoadedObject($order) && ! PaysPsModelResponse::isLastResponse(Tools::getValue('PaymentOrderID', null), Tools::getValue('hash', null))) {
                 $response = new PaysPsModelResponse();
                 $response->payment_order_id = Tools::getValue('PaymentOrderID', null);
                 $response->id_cart = $order->id_cart;
@@ -104,6 +104,15 @@ class Pays_PsValidationModuleFrontController extends ModuleFrontController {
                         $this->paysPsResponseFailed = true;
                     } else {
                         $currency = new Currency($id_currency);
+                        $hookResult = Hook::exec('actionPaysPsAddOrderPayment', [
+                                    'amount' => $amount,
+                                    'order' => $order
+                                        ], null, true);
+                        $hookResult = is_array($hookResult) ? end($hookResult) : $hookResult;
+                        if (! empty($hookResult['amount']) && ! empty($hookResult['currency'])) {
+                            $amount = $hookResult['amount'];
+                            $currency = $hookResult['currency'];
+                        }
                         $order->addOrderPayment($amount, 'Pays', $response->payment_order_id, $currency);
                     }
                     if (PaysPsModelUtils::floatcmp($order->getTotalPaid(), $order->total_paid_tax_incl) >= 0) {
@@ -113,7 +122,7 @@ class Pays_PsValidationModuleFrontController extends ModuleFrontController {
                     $this->module->changeOrderStatus($order, Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_UNREALIZED'));
                 }
             }
-            if (!empty($this->paysPsMsgs)) {
+            if (! empty($this->paysPsMsgs)) {
                 PaysPsModelMessage::addMessages($this->paysPsMsgs, $payment->id);
             }
         }
@@ -128,5 +137,4 @@ class Pays_PsValidationModuleFrontController extends ModuleFrontController {
             Tools::redirectLink(__PS_BASE_URI__ . 'order-confirmation.php?id_module=' . (int) $this->module->id);
         }
     }
-
 }

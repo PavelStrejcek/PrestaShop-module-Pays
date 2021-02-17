@@ -35,9 +35,10 @@ require_once PAYS_PS_DIR . '/model/Message.php';
 require_once PAYS_PS_DIR . '/model/Utils.php';
 require_once PAYS_PS_DIR . '/model/OrderState.php';
 
-class Pays_PS extends PaymentModule {
-
-    public function __construct() {
+class Pays_PS extends PaymentModule
+{
+    public function __construct()
+    {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
         $this->version = '1.0.4';
@@ -99,7 +100,8 @@ class Pays_PS extends PaymentModule {
         );
     }
 
-    public function install() {
+    public function install()
+    {
         // default value of editable field
         $paymentDescriptions = array();
         foreach (Language::getLanguages(false) as $language) {
@@ -125,10 +127,12 @@ class Pays_PS extends PaymentModule {
                 $this->registerHook('actionEmailAddAfterContent') &&
                 $this->registerHook('displayPaysPsPayOption') &&
                 $this->registerHook('actionPaysPsPaymentUrlAmount') &&
+                $this->registerHook('actionPaysPsAddOrderPayment') &&
                 Configuration::updateValue('PAYS_PS_PAYMENT_DESCRIPTION', $paymentDescriptions);
     }
 
-    public function uninstall() {
+    public function uninstall()
+    {
         return parent::uninstall() &&
                 $this->uninstallOrderState(Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_AWAITING')) &&
                 $this->uninstallOrderState(Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED')) &&
@@ -143,7 +147,8 @@ class Pays_PS extends PaymentModule {
                 Configuration::deleteByName('PAYS_PS_ORDER_STATUS_PAYMENT_UNREALIZED');
     }
 
-    public function processSQL($file) {
+    public function processSQL($file)
+    {
         $allowed_collation = array('utf8_general_ci', 'utf8_unicode_ci');
         $collation_database = Db::getInstance()->getValue('SELECT @@collation_database');
 
@@ -179,8 +184,8 @@ class Pays_PS extends PaymentModule {
         return true;
     }
 
-    private function orderStatusExistsByNames($settings) {
-
+    private function orderStatusExistsByNames($settings)
+    {
         $oldState = PaysPsModelOrderState::findOneByNames($settings['names']);
         if (Validate::isLoadedObject($oldState)) {
             $oldState->deleted = false;
@@ -191,7 +196,8 @@ class Pays_PS extends PaymentModule {
         return false;
     }
 
-    private function newOrderStatus($settings) {
+    private function newOrderStatus($settings)
+    {
         $orderState = new OrderState();
         $orderState->name = array();
         foreach (Language::getLanguages(false) as $language) {
@@ -200,7 +206,8 @@ class Pays_PS extends PaymentModule {
         return $orderState;
     }
 
-    private function addOrderStatus($orderState, $settings) {
+    private function addOrderStatus($orderState, $settings)
+    {
         $orderState->add();
         if ($orderState->id) {
             copy(PAYS_PS_DIR . '/views/img/' . $settings['gif'] . '.gif', _PS_ORDER_STATE_IMG_DIR_ . $orderState->id . '.gif');
@@ -209,7 +216,8 @@ class Pays_PS extends PaymentModule {
         return false;
     }
 
-    private function installOrderStatusAwaiting() {
+    private function installOrderStatusAwaiting()
+    {
         $settings = array(
             'names' => array(
                 'en' => 'Awaiting Pays payment',
@@ -243,7 +251,8 @@ class Pays_PS extends PaymentModule {
         $this->_errors[] = Tools::displayError('Creation of awaiting payment status failed.');
     }
 
-    private function installOrderStatusReceived() {
+    private function installOrderStatusReceived()
+    {
         $settings = array(
             'names' => array(
                 'en' => 'Pays payment RECEIVED',
@@ -290,7 +299,8 @@ class Pays_PS extends PaymentModule {
         $this->_errors[] = Tools::displayError('Creation of payment received status failed.');
     }
 
-    private function installOrderStatusUnrealized() {
+    private function installOrderStatusUnrealized()
+    {
         $settings = array(
             'names' => array(
                 'en' => 'Pays payment UNREALIZED',
@@ -332,7 +342,8 @@ class Pays_PS extends PaymentModule {
         $this->_errors[] = Tools::displayError('Creation of payment unrealized status failed.');
     }
 
-    private function uninstallOrderState($idOrderState) {
+    private function uninstallOrderState($idOrderState)
+    {
         $orderState = new OrderState($idOrderState);
         if (Validate::isLoadedObject($orderState)) {
             $orderState->deleted = true;
@@ -342,14 +353,14 @@ class Pays_PS extends PaymentModule {
         return true;
     }
 
-    private function isActive() {
-
+    private function isActive()
+    {
         $password = Configuration::get('PAYS_PS_PASSWORD');
         return $this->active && !empty($password);
     }
 
-    public function hookPaymentOptions($params) {
-
+    public function hookPaymentOptions($params)
+    {
         if (!$this->isActive()) {
             return array();
         }
@@ -371,7 +382,8 @@ class Pays_PS extends PaymentModule {
         return $payment_options;
     }
 
-    public function getGatePaymentOption() {
+    public function getGatePaymentOption()
+    {
         $paymentOption = new PaymentOption();
         $paymentOption->setCallToActionText(' ' . $this->l('ONLINE PAYMENT'))
                 ->setModuleName($this->name)
@@ -388,7 +400,8 @@ class Pays_PS extends PaymentModule {
         return $paymentOption;
     }
 
-    public function hookPaymentReturn($params) {
+    public function hookPaymentReturn($params)
+    {
         if (!$this->isActive()) {
             return;
         }
@@ -418,7 +431,8 @@ class Pays_PS extends PaymentModule {
         }
     }
 
-    public function hookDisplayAdminOrder($params) {
+    public function hookDisplayAdminOrder($params)
+    {
         if (!$this->isActive()) {
             return;
         }
@@ -445,7 +459,8 @@ class Pays_PS extends PaymentModule {
         }
     }
 
-    public function hookActionAdminControllerSetMedia($params) {
+    public function hookActionAdminControllerSetMedia($params)
+    {
         if (!$this->active) {
             return;
         }
@@ -453,32 +468,34 @@ class Pays_PS extends PaymentModule {
         $this->context->controller->addCSS($this->_path . '/views/css/admin.css');
     }
 
-    public function hookActionFrontControllerSetMedia($params) {
+    public function hookActionFrontControllerSetMedia($params)
+    {
         if (!$this->isActive()) {
             return;
         }
         // Only on order page
         if ('order' === $this->context->controller->php_self) {
             $this->context->controller->registerJavascript(
-                    'pays_ps-front',
-                    'modules/' . $this->name . '/views/js/front.js',
-                    array(
+                'pays_ps-front',
+                'modules/' . $this->name . '/views/js/front.js',
+                array(
                         'priority' => 301,
                         'attribute' => 'async',
                         'position' => 'bottom',
                     )
             );
             $this->context->controller->registerStylesheet(
-                    'pays_ps-front',
-                    'modules/' . $this->name . '/views/css/front.css',
-                    array(
+                'pays_ps-front',
+                'modules/' . $this->name . '/views/css/front.css',
+                array(
                         'priority' => 301
                     )
             );
         }
     }
 
-    public function hookDisplayOrderDetail($params) {
+    public function hookDisplayOrderDetail($params)
+    {
         if (!$this->isActive()) {
             return;
         }
@@ -491,7 +508,8 @@ class Pays_PS extends PaymentModule {
         }
     }
 
-    public function hookActionEmailAddAfterContent($params) {
+    public function hookActionEmailAddAfterContent($params)
+    {
         if (!$this->isActive()) {
             return;
         }
@@ -510,7 +528,8 @@ class Pays_PS extends PaymentModule {
         }
     }
 
-    public function isOrderForPayment($order, $checkPaymentMethod = true) {
+    public function isOrderForPayment($order, $checkPaymentMethod = true)
+    {
         $compare = PaysPsModelUtils::floatcmp($order->getTotalPaid(), $order->total_paid_tax_incl) == -1;
         if ($checkPaymentMethod) {
             return $order->module == $this->name && $compare;
@@ -518,7 +537,8 @@ class Pays_PS extends PaymentModule {
         return $compare;
     }
 
-    public function getContent() {
+    public function getContent()
+    {
         $output = null;
 
         if (Tools::isSubmit('submit' . $this->name)) {
@@ -570,11 +590,13 @@ class Pays_PS extends PaymentModule {
         return $output;
     }
 
-    private function removeLanguageFromUrl($url) {
+    private function removeLanguageFromUrl($url)
+    {
         return preg_replace('~^([^/]+//[^/]+/)([^/]{2}/)~', '$1', $url);
     }
 
-    public function displayForm() {
+    public function displayForm()
+    {
         $helper = new HelperForm();
         // Get default language
         $default_lang = (int) Configuration::get('PS_LANG_DEFAULT');
@@ -684,17 +706,20 @@ class Pays_PS extends PaymentModule {
         return $helper->generateForm($fields_form);
     }
 
-    public function getLogoPath() {
+    public function getLogoPath()
+    {
         return _MODULE_DIR_ . $this->name . '/logo.png';
     }
 
-    private function getOptionHash($option) {
+    private function getOptionHash($option)
+    {
         $hash = uniqid('', true);
         $this->context->cookie->{'pays_ps_option_' . $option . '_hash'} = $this->context->cart->id . '_' . $hash;
         return $hash;
     }
 
-    public function checkOptionHash($option, $id_cart, $hash) {
+    public function checkOptionHash($option, $id_cart, $hash)
+    {
         $cookie = $this->context->cookie->{'pays_ps_option_' . $option . '_hash'};
         $pair = explode('_', $cookie);
         if (!empty($pair[0]) && $pair[0] == $id_cart && !empty($pair[1]) && $pair[1] == $hash) {
@@ -703,12 +728,13 @@ class Pays_PS extends PaymentModule {
         return false;
     }
 
-    public function createPaymentUrl($order, $email = true) {
+    public function createPaymentUrl($order, $email = true)
+    {
         $customer = new Customer($order->id_customer);
         $currency = new Currency($order->id_currency);
         $language = new Language($order->id_lang);
         $amount = $order->total_paid_tax_incl - $order->getTotalPaid();
-        
+
         $hookResult = Hook::exec('actionPaysPsPaymentUrlAmount', [
             'amount' => $amount,
             'currency' => $currency,
@@ -743,12 +769,14 @@ class Pays_PS extends PaymentModule {
         return $url;
     }
 
-    public function validateResponseHash($PaymentOrderID, $MerchantOrderNumber, $PaymentOrderStatusID, $CurrencyID, $Amount, $CurrencyBaseUnits, $hash) {
+    public function validateResponseHash($PaymentOrderID, $MerchantOrderNumber, $PaymentOrderStatusID, $CurrencyID, $Amount, $CurrencyBaseUnits, $hash)
+    {
         $computedHash = hash_hmac('md5', $PaymentOrderID . $MerchantOrderNumber . $PaymentOrderStatusID . $CurrencyID . $Amount . $CurrencyBaseUnits, Configuration::get('PAYS_PS_PASSWORD'));
         return $computedHash === $hash;
     }
 
-    public function changeOrderStatus($order, $id_order_state) {
+    public function changeOrderStatus($order, $id_order_state)
+    {
         try {
             $order_state = new OrderState($id_order_state);
 
@@ -790,5 +818,4 @@ class Pays_PS extends PaymentModule {
         }
         PrestaShopLogger::addLog($this->l('Pays: Unable to complete order status change to "Non-cash payment received" when confirming payment from service.') . (empty($emsg) ? '' : ' Exception: ' . $emsg), 1, null, 'Order', $order->id, true);
     }
-
 }

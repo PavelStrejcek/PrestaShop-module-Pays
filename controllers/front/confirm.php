@@ -101,6 +101,15 @@ class Pays_PsConfirmModuleFrontController extends ModuleFrontController {
                         $this->paysPsResponseFailed = true;
                     } else {
                         $currency = new Currency($id_currency);
+                        $hookResult = Hook::exec('actionPaysPsAddOrderPayment', [
+                                    'amount' => $amount,
+                                    'order' => $order
+                                        ], null, true);
+                        $hookResult = is_array($hookResult) ? end($hookResult) : $hookResult;
+                        if ( ! empty($hookResult['amount']) && ! empty($hookResult['currency'])) {
+                            $amount = $hookResult['amount'];
+                            $currency = $hookResult['currency'];
+                        }
                         $order->addOrderPayment($amount, 'Pays', $response->payment_order_id, $currency);
                     }
                     if (PaysPsModelUtils::floatcmp($order->getTotalPaid(), $order->total_paid_tax_incl) >= 0) {
