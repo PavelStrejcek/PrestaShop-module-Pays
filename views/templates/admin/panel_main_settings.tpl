@@ -17,7 +17,7 @@
  * Module development: www.BrainWeb.cz
  *}
 <div class="panel">
-    <div style="float:right;font-size: 120%;font-weight:bold;"><a href = "{$paysPsModulePath|escape:'html'}/doc/Navod_k_pouziti_modulu_Pays_v1.2-PS1.7.pdf" target="_blank"><img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" height="20"> {l s='Instructions for Use (PDF)' mod='pays_ps'}</a></div>
+    <div style="float:right;font-size: 120%;font-weight:bold;"><a href = "{$paysPsModulePath|escape:'html'}/doc/Navod_k_pouziti_modulu_Pays_v1.3-PS1.7.pdf" target="_blank"><img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" height="20"> {l s='Instructions for Use (PDF)' mod='pays_ps'}</a></div>
     <h1>
         <a href = "https://www.pays.cz/" target="_blank">
         <img src="{$paysPsLogoPath|escape:'html'}" alt="Pays" style="vertical-align:-45%"></a>

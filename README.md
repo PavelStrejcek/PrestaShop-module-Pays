@@ -25,7 +25,7 @@ More information at https://www.BrainWeb.cz
 ## Further information
 
 Further information (in Czech) is in the Instructions for Use:  
-[doc/Navod_k_pouziti_modulu_Pays_v1.2-PS1.7.pdf](doc/Navod_k_pouziti_modulu_Pays_v1.2-PS1.7.pdf)
+[doc/Navod_k_pouziti_modulu_Pays_v1.3-PS1.7.pdf](doc/Navod_k_pouziti_modulu_Pays_v1.3-PS1.7.pdf)
 
 Author:    Pavel Strejček <aplikace@brainweb.cz>  
 Copyright: 2019-2021 Pavel Strejček  
