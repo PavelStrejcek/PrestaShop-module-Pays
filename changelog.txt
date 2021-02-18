@@ -1,5 +1,5 @@
-2021/02/17 (version 1.0.5)
-- General: Added hooks
+2021/02/18 (version 1.0.5)
+- General: Added module hooks
 
 2021/01/14 (version 1.0.4)
 - General: Added currency code to messages

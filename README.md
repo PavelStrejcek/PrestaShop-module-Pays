@@ -16,6 +16,12 @@ Connection to the Pays payment gateway.
 - Option to add language versions
 - Message logging
 
+## Price conversion for currencies not supported by the payment gateway
+
+If you have prices in a currency that is not supported by the payment gateway,
+you can purchase the Pays Conversion module, which converts prices into the correct currency.
+More information at https://www.BrainWeb.cz
+
 ## Further information
 
 Further information (in Czech) is in the Instructions for Use:  
