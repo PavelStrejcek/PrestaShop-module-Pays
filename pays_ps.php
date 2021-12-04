@@ -26,7 +26,7 @@ if (!defined('_PS_VERSION_')) {
 
 defined('PAYS_PS_DIR') or define('PAYS_PS_DIR', dirname(__FILE__));
 
-
+require_once PAYS_PS_DIR . '/settings.php';
 require_once PAYS_PS_DIR . '/model/Db.php';
 require_once PAYS_PS_DIR . '/model/Payment.php';
 require_once PAYS_PS_DIR . '/model/Response.php';
@@ -41,7 +41,7 @@ class Pays_PS extends PaymentModule
     {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.5';
+        $this->version = '1.0.6';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => '1.7');
@@ -720,6 +720,9 @@ class Pays_PS extends PaymentModule
 
     public function checkOptionHash($option, $id_cart, $hash)
     {
+        if (defined('PAY_PS_OPTION_DATA_MATCH_CHECK_DISABLED') && PAY_PS_OPTION_DATA_MATCH_CHECK_DISABLED == 'on') {
+            return true;
+        }
         $cookie = $this->context->cookie->{'pays_ps_option_' . $option . '_hash'};
         $pair = explode('_', $cookie);
         if (!empty($pair[0]) && $pair[0] == $id_cart && !empty($pair[1]) && $pair[1] == $hash) {
