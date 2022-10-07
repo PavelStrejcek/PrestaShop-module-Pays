@@ -1,3 +1,8 @@
+2022/10/07 (version 1.0.7)
+- General: Added setting for special order status RECEIVED
+- General: Keep settings.php after module reinstallation.
+- Bug:     Fixed the display of the table of payments in the order detail in the administration.
+
 2021/12/04 (version 1.0.6)
 - General: Added setting to disable data checking on the option
 

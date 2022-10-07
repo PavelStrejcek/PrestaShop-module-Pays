@@ -26,7 +26,9 @@ if (!defined('_PS_VERSION_')) {
 
 defined('PAYS_PS_DIR') or define('PAYS_PS_DIR', dirname(__FILE__));
 
-require_once PAYS_PS_DIR . '/settings.php';
+if (file_exists(PAYS_PS_DIR . '/settings.php')) {
+    require_once PAYS_PS_DIR . '/settings.php';
+}
 require_once PAYS_PS_DIR . '/model/Db.php';
 require_once PAYS_PS_DIR . '/model/Payment.php';
 require_once PAYS_PS_DIR . '/model/Response.php';
@@ -41,7 +43,7 @@ class Pays_PS extends PaymentModule
     {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.6';
+        $this->version = '1.0.7';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => '1.7');
@@ -776,6 +778,24 @@ class Pays_PS extends PaymentModule
     {
         $computedHash = hash_hmac('md5', $PaymentOrderID . $MerchantOrderNumber . $PaymentOrderStatusID . $CurrencyID . $Amount . $CurrencyBaseUnits, Configuration::get('PAYS_PS_PASSWORD'));
         return $computedHash === $hash;
+    }
+
+    public function changeOrderToReceivedStatus($order)
+    {
+        if (defined('PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID')
+            && is_int(PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID)) {
+            $order_state = new OrderState(PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID);
+            if (Validate::isLoadedObject($order_state)) {
+                $id_order_state = PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID;
+            } else {
+                PrestaShopLogger::addLog($this->l('Pays: Setting PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID is not valid OrderStatus ID. The module default status is used.'), 1, null, 'Order', $order->id, true);
+            }
+        }
+
+        $this->changeOrderStatus(
+            $order,
+            empty($id_order_state) ? Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED') : $id_order_state
+        );
     }
 
     public function changeOrderStatus($order, $id_order_state)

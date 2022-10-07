@@ -116,7 +116,7 @@ class Pays_PsValidationModuleFrontController extends ModuleFrontController
                         $order->addOrderPayment($amount, 'Pays', $response->payment_order_id, $currency);
                     }
                     if (PaysPsModelUtils::floatcmp($order->getTotalPaid(), $order->total_paid_tax_incl) >= 0) {
-                        $this->module->changeOrderStatus($order, Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED'));
+                        $this->module->changeOrderToReceivedStatus($order);
                     }
                 } elseif ($response->payment_order_status_id == 2) {
                     $this->module->changeOrderStatus($order, Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_UNREALIZED'));

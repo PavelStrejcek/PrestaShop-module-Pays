@@ -18,9 +18,14 @@
  */
 
 $(function () {
-	if ($('#pays_ps-payment').length) {
-		$('#pays_ps-payment').detach().appendTo("#formAddPaymentPanel");
-	}
-
+        if ($('#formAddPaymentPanel').length) {
+            var $appendTo = $('#formAddPaymentPanel');
+        } else if ($('#view_order_payments_block').length) {
+            var $appendTo = $('#view_order_payments_block').find('.card-body');  
+        }
+        
+        if ($('#pays_ps-payment').length && $appendTo) {
+            $('#pays_ps-payment').detach().appendTo($appendTo);
+        }
 });
 
