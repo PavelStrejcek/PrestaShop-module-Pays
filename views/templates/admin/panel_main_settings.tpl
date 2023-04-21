@@ -10,14 +10,14 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2021 Pavel Strejček
+ * @copyright 2019 - 2023 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  *}
 <div class="panel">
-    <div style="float:right;font-size: 120%;font-weight:bold;"><a href = "{$paysPsModulePath|escape:'html'}/doc/Navod_k_pouziti_modulu_Pays_v1.3-PS1.7.pdf" target="_blank"><img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" height="20"> {l s='Instructions for Use (PDF)' mod='pays_ps'}</a></div>
+    <div style="float:right;font-size: 120%;font-weight:bold;"><a href = "{$paysPsModulePath|escape:'html'}/doc/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf" target="_blank"><img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" height="20"> {l s='Instructions for Use (PDF)' mod='pays_ps'}</a></div>
     <h1>
         <a href = "https://www.pays.cz/" target="_blank">
         <img src="{$paysPsLogoPath|escape:'html'}" alt="Pays" style="vertical-align:-45%"></a>

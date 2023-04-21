@@ -2,3 +2,17 @@
 .pays_ps-messsage-error{
 	color: red;
 }
+#pays_ps-paymentUrlCopy {
+	overflow: auto;
+	white-space: nowrap;
+	display: block;
+	background-color: #f7f7f7;
+}
+
+#pays_ps-paymentUrlCopyButton {
+	border: 1px solid #444444;
+	color: #444444;
+	background-color: #cbcbcb;
+	padding: 3px;
+	cursor: pointer;
+}

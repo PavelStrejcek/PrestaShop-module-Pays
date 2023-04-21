@@ -41,6 +41,7 @@ $_MODULE['<{pays_ps}prestashop>pays_ps_b7568fef7a527645ecffb0c1e5eb3d19'] = 'Tat
 $_MODULE['<{pays_ps}prestashop>pays_ps_7f1971cb6b14c0837f13a0ff198f28d0'] = 'Podporované měny:';
 $_MODULE['<{pays_ps}prestashop>pays_ps_c9cc8cce247e49bae79f15173ce97354'] = 'Uložit';
 $_MODULE['<{pays_ps}prestashop>pays_ps_630f6dc397fe74e52d5189e2c80f282b'] = 'Zpět na seznam';
+$_MODULE['<{pays_ps}prestashop>pays_ps_edc8845564cc077e39a973a9d861527f'] = 'Pays: Nastavení PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID není platné ID stavu objednávky. Použije se výchozí stav modulu.';
 $_MODULE['<{pays_ps}prestashop>pays_ps_bd6647308faff81447cda7bc8d94f618'] = 'Pays: při potvrzení platby za službu nelze dokončit změnu stavu objednávky na položku \"Bezhotovostní platba PŘIJATA\".';
 $_MODULE['<{pays_ps}prestashop>admin_order_d8cf9f84cd7d87118d5645328ed83ae2'] = 'Platební brána Pays';
 $_MODULE['<{pays_ps}prestashop>admin_order_59113df7622c2b809c7b47e642a11d2f'] = 'Podepsané odpovědi z brány';

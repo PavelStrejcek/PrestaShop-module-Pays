@@ -1,3 +1,7 @@
+2023/04/21 (version 1.0.8)
+- General: changes for PS 8
+- General: copy payment url function
+
 2022/10/07 (version 1.0.7)
 - General: Added setting for special order status RECEIVED
 - General: Keep settings.php after module reinstallation.

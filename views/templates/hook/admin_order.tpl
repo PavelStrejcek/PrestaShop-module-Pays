@@ -10,7 +10,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2021 Pavel Strejček
+ * @copyright 2019 - 2023 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -75,8 +75,8 @@
         
         {if !empty($paysPsPaymentUrl)}
         <div class="panel">
-            <p>{l s='Payment URL:' mod='pays_ps'}</p>
-            <p><code>{$paysPsPaymentUrl|escape:'html'}</code></p>
+            <p>{l s='Payment URL:' mod='pays_ps'} <span id="pays_ps-paymentUrlCopyButton">COPY</span></p>
+            <p><code id="pays_ps-paymentUrlCopy">{$paysPsPaymentUrl|escape:'html'}</code></p>
         </div>
         {/if}
 

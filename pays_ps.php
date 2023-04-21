@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2021 Pavel Strejček
+ * @copyright 2019 - 2023 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -43,10 +43,10 @@ class Pays_PS extends PaymentModule
     {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.7';
+        $this->version = '1.0.8';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
-        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => '1.7');
+        $this->ps_versions_compliancy = array('min' => '8.0', 'max' => '8.9');
         $this->bootstrap = true;
         $this->controllers = array('payment', 'validate', 'confirm');
 
@@ -97,8 +97,7 @@ class Pays_PS extends PaymentModule
             'cs' => 'CS-CZ',
             'sk' => 'SK-SK',
             'en' => 'EN-US',
-            'ru' => 'RU-RU',
-            'ja' => 'JA-JP'
+            'de' => 'DE-DE'
         );
     }
 
@@ -521,10 +520,10 @@ class Pays_PS extends PaymentModule
             if ($orders instanceof PrestaShopCollection && $orders->count()) {
                 $order = $orders->getFirst();
                 if (!empty($params['template_html'])) {
-                    $params['template_html'] = preg_replace('~\{payment\}~', '{payment} <br/>' . $this->l('If you have not already made a payment, you can pay:') . ' <a class="pays_ps-payment-link" href="' . htmlspecialchars($this->createPaymentUrl($order)) . '">' . $this->l('PAY NOW') . '</a>', $params['template_html']);
+                    $params['template_html'] = preg_replace('~\{payment\}~', '{payment} <br/>' . $this->l('If you have not already made a payment, you can pay:') . ' <br/><a class="pays_ps-payment-link" href="' . htmlspecialchars($this->createPaymentUrl($order)) . '">' . $this->l('PAY NOW') . '</a>', $params['template_html']);
                 }
                 if (!empty($params['template_txt'])) {
-                    $params['template_txt'] = preg_replace('~\{payment\}~', "{payment} \r\n" . $this->l('If you have not already made a payment, you can pay:') . ' [' . $this->createPaymentUrl($order) . ']', $params['template_txt']);
+                    $params['template_txt'] = preg_replace('~\{payment\}~', "{payment} \r\n" . $this->l('If you have not already made a payment, you can pay:') . "\r\n[" . $this->createPaymentUrl($order) . ']', $params['template_txt']);
                 }
             }
         }
@@ -816,10 +815,12 @@ class Pays_PS extends PaymentModule
                     }
                     $history->changeIdOrderState((int) $order_state->id, $order, $use_existings_payment);
 
-                    $carrier = new Carrier($order->id_carrier, $order->id_lang);
+                    $carrier = new Carrier($order->id_carrier, (int) $order->getAssociatedLanguage()->getId());
                     $templateVars = array();
-                    if ($history->id_order_state == Configuration::get('PS_OS_SHIPPING') && $order->shipping_number) {
-                        $templateVars = array('{followup}' => str_replace('@', $order->shipping_number, $carrier->url));
+                    if ($history->id_order_state == Configuration::get('PS_OS_SHIPPING') && $order->getShippingNumber()) {
+                        $templateVars = [
+                            '{followup}' => str_replace('@', $order->getShippingNumber(), $carrier->url),
+                        ];
                     }
 
                     // Save all changes

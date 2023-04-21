@@ -10,7 +10,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2021 Pavel Strejček
+ * @copyright 2019 - 2023 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -18,14 +18,15 @@
  */
 
 $(function () {
-        if ($('#formAddPaymentPanel').length) {
-            var $appendTo = $('#formAddPaymentPanel');
-        } else if ($('#view_order_payments_block').length) {
-            var $appendTo = $('#view_order_payments_block').find('.card-body');  
-        }
-        
-        if ($('#pays_ps-payment').length && $appendTo) {
-            $('#pays_ps-payment').detach().appendTo($appendTo);
-        }
+    var $appendTo = $('#view_order_payments_block').find('.card-body');
+    if ($('#pays_ps-payment').length && $appendTo) {
+        $('#pays_ps-payment').detach().appendTo($appendTo);
+        $('#pays_ps-paymentUrlCopyButton').click(function () {
+            var copyText = $('#pays_ps-paymentUrlCopy').text();
+            navigator.clipboard.writeText(copyText).then(() => {
+                alert("Copied to clipboard");
+            });
+        });
+    }
 });
 
