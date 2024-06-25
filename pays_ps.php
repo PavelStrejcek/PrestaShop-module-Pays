@@ -43,7 +43,7 @@ class Pays_PS extends PaymentModule
     {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.7';
+        $this->version = '1.0.8';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => '1.7');
@@ -452,7 +452,7 @@ class Pays_PS extends PaymentModule
                 ));
             }
             if ($this->isOrderForPayment($order, false)) {
-                $paymentUrl = $this->createPaymentUrl($order, false);
+                $paymentUrl = $this->createPaymentUrl($order);
                 $this->context->smarty->assign(array(
                     'paysPsPaymentUrl' => $paymentUrl
                 ));
@@ -733,7 +733,7 @@ class Pays_PS extends PaymentModule
         return false;
     }
 
-    public function createPaymentUrl($order, $email = true)
+    public function createPaymentUrl($order)
     {
         $customer = new Customer($order->id_customer);
         $currency = new Currency($order->id_currency);
@@ -758,12 +758,10 @@ class Pays_PS extends PaymentModule
             'Shop' => Configuration::get('PAYS_PS_SHOP'),
             'Currency' => $isoCode,
             'Amount' => number_format($amount * 100, 0, '.', ''),
-            'MerchantOrderNumber' => $order->reference
+            'MerchantOrderNumber' => $order->reference,
+            'CardholderName' => $customer->firstname . ' ' . $customer->lastname,
+            'Email' => $customer->email,
         );
-
-        if ($email) {
-            $params['Email'] = $customer->email;
-        }
 
         if (array_key_exists(strtolower($language->iso_code), $this->paysPsAllowedLanguages)) {
             $params['Lang'] = $this->paysPsAllowedLanguages[$language->iso_code];

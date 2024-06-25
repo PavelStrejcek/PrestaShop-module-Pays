@@ -1,3 +1,6 @@
+2024/06/26 (version 1.0.8)
+- General: CardholderName added to the payment request, the email always
+
 2022/10/07 (version 1.0.7)
 - General: Added setting for special order status RECEIVED
 - General: Keep settings.php after module reinstallation.
