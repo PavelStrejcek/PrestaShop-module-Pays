@@ -28,7 +28,7 @@ Further information (in Czech) is in the Instructions for Use:
 [doc/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf](doc/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf)
 
 Author:    Pavel Strejček <aplikace@brainweb.cz>  
-Copyright: 2019 - 2023 Pavel Strejček  
+Copyright: 2019 - 2024 Pavel Strejček  
 License:   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
 
 Payment gateway operator and support: www.Pays.cz  

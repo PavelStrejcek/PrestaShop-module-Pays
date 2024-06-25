@@ -1,3 +1,6 @@
+2024/06/25 (version 1.0.9)
+- General: CardholderName added to the payment request, the email always
+
 2023/04/21 (version 1.0.8)
 - General: changes for PS 8
 - General: copy payment url function
