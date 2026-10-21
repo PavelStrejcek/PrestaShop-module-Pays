@@ -1,3 +1,10 @@
+2.0.1 (PS9-dev)
+- Fix hook registration when PrestaShop development-mode checks are enabled.
+- Keep extension hooks available without subscribing the module to missing handlers.
+- Fix ownership of newly created Docker cache directories before installation.
+- Fail immediately with diagnostics when the CI installer container stops.
+- Add cold-cache and bootstrap regression tests to GitHub Actions.
+
 2.0.0 (PS9-dev)
 - PrestaShop 9 compatibility; corrected controller registration and removed old redirect API.
 - Ignore a migrated advanced-stock flag instead of calling the removed dependsOnStock API.

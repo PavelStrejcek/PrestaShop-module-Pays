@@ -50,7 +50,7 @@ class Pays_PS extends PaymentModule
     {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.0';
+        $this->version = '2.0.1';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '9.0.0', 'max' => '9.99.99');
@@ -128,15 +128,33 @@ class Pays_PS extends PaymentModule
                 $this->registerHook('paymentReturn') &&
                 $this->registerHook('paymentOptions') &&
                 $this->registerHook('displayAdminOrder') &&
-                $this->registerHook('displayBackOfficeHeader') &&
                 $this->registerHook('actionAdminControllerSetMedia') &&
                 $this->registerHook('actionFrontControllerSetMedia') &&
                 $this->registerHook('displayOrderDetail') &&
                 $this->registerHook('actionEmailAddAfterContent') &&
-                $this->registerHook('displayPaysPsPayOption') &&
-                $this->registerHook('actionPaysPsPaymentUrlAmount') &&
-                $this->registerHook('actionPaysPsAddOrderPayment') &&
+                $this->installIntegrationHooks() &&
                 Configuration::updateValue('PAYS_PS_PAYMENT_DESCRIPTION', $paymentDescriptions);
+    }
+
+    public function installIntegrationHooks()
+    {
+        $published = ['displayPaysPsPayOption', 'actionPaysPsPaymentUrlAmount', 'actionPaysPsAddOrderPayment'];
+        foreach ($published as $name) {
+            // These are extension points consumed by other modules. Publishing
+            // a hook must not register Pays as a listener without a handler.
+            if (!Hook::getIdByName($name)) {
+                $hook = new Hook();
+                $hook->name = $name;
+                $hook->title = $name;
+                if (!$hook->add()) { return false; }
+            }
+        }
+        // Remove only this module's obsolete registrations from earlier versions.
+        // Keep the hook definitions and any third-party subscribers intact.
+        foreach (array_merge(['displayBackOfficeHeader'], $published) as $name) {
+            if ($this->isRegisteredInHook($name) && !$this->unregisterHook($name)) { return false; }
+        }
+        return true;
     }
 
     public function uninstall()

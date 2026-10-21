@@ -36,6 +36,35 @@ test('2.0.0 upgrade preserves payment data and expands diagnostic codes', functi
     foreach ($before as $table => $count) { same($count, fixtureCount($table, '1')); }
     same('varchar(255)', Db::getInstance()->getValue('SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=\'' . _DB_PREFIX_ . 'pays_ps_message\' AND COLUMN_NAME=\'code\'', false));
 });
+test('published integration hooks exist without unimplemented self-subscriptions', function () use ($module) {
+    foreach (['displayPaysPsPayOption', 'actionPaysPsPaymentUrlAmount', 'actionPaysPsAddOrderPayment'] as $name) {
+        same(true, (int) Hook::getIdByName($name) > 0);
+        same(false, (bool) $module->isRegisteredInHook($name));
+    }
+    same(false, (bool) $module->isRegisteredInHook('displayBackOfficeHeader'));
+});
+test('2.0.1 upgrade removes legacy self-subscriptions and keeps payment data', function () use ($module) {
+    $names = ['displayBackOfficeHeader', 'displayPaysPsPayOption', 'actionPaysPsPaymentUrlAmount', 'actionPaysPsAddOrderPayment'];
+    $before = [];
+    foreach (['pays_ps_payment', 'pays_ps_response', 'pays_ps_message', 'pays_ps_currency'] as $table) { $before[$table] = fixtureCount($table, '1'); }
+    foreach ($names as $name) {
+        $id = (int) Hook::getIdByName($name);
+        same(true, $id > 0);
+        if (!$module->isRegisteredInHook($name)) {
+            same(true, Db::getInstance()->insert('hook_module', ['id_module' => (int) $module->id, 'id_shop' => 1, 'id_hook' => $id, 'position' => 1]));
+        }
+    }
+    Cache::clean('*');
+    require_once dirname(__DIR__) . '/upgrade/upgrade-2.0.1.php';
+    same(true, upgrade_module_2_0_1($module));
+    same(true, upgrade_module_2_0_1($module));
+    Cache::clean('*');
+    foreach ($names as $name) {
+        same(true, (int) Hook::getIdByName($name) > 0);
+        same(false, (bool) $module->isRegisteredInHook($name));
+    }
+    foreach ($before as $table => $count) { same($count, fixtureCount($table, '1')); }
+});
 
 test('unsigned browser return cannot create a payment or disclose the order key', function () {
     $order = fixtureOrder();

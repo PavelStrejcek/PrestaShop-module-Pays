@@ -36,6 +36,10 @@ services:
       NO_PROXY:
     ports:
       - '127.0.0.1:8080:80'
+    tmpfs:
+      # Symfony scans module directories in dev mode; keep repository metadata
+      # out of both the scanner and the web server's module mount.
+      - /var/www/html/modules/pays_ps/.git:ro,size=64k,mode=0755
     volumes:
       - shop:/var/www/html
       - ../:/var/www/html/modules/pays_ps:ro

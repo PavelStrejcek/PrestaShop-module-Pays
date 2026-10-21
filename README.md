@@ -2,7 +2,7 @@
 
 Connection to the Pays payment gateway.  
 
-Version **2.0.0**, developed on branch `PS9-dev`. Requires PrestaShop 9 and
+Version **2.0.1**, developed on branch `PS9-dev`. Requires PrestaShop 9 and
 PHP 8.1–8.4 (use the PHP versions supported by your particular PrestaShop release).
 The original PrestaShop 8 version remains on `master`.
 
@@ -19,6 +19,8 @@ the module files and run the module manager's upgrade action (or
 reinstall to upgrade: reinstallation resets the module's payment tables.
 The 2.0.0 upgrade retains payment history, configuration and order states and
 expands the diagnostic-code column without truncating existing codes.
+The 2.0.1 upgrade also removes obsolete self-subscriptions while preserving the
+custom hooks and subscriptions belonging to currency-conversion extensions.
 Recheck the success/error/background URLs displayed in the settings after
 upgrading the shop to PrestaShop 9.
 

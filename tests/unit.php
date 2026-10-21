@@ -25,6 +25,16 @@ test('PS9 is declared compatible and the validation controller exists', function
         same(true, is_file(dirname(__DIR__) . '/controllers/front/' . $controller . '.php'));
     }
 });
+test('every installed hook subscription implements its PS9 listener method', function () {
+    $m = module();
+    preg_match_all('/->registerHook\(\x27([^\x27]+)\x27\)/', file_get_contents(dirname(__DIR__) . '/pays_ps.php'), $matches);
+    same(true, count($matches[1]) > 0);
+    $missing = [];
+    foreach ($matches[1] as $hook) {
+        if (!is_callable([$m, 'hook' . $hook])) { $missing[] = $hook; }
+    }
+    same([], $missing);
+});
 test('module construction on PHP 8.2+ does not create dynamic properties', function () {
     set_error_handler(function ($level, $message) { throw new RuntimeException($message); });
     try { module(); } finally { restore_error_handler(); }

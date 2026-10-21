@@ -25,12 +25,19 @@ jobs:
         with:
           node-version: '22'
       - run: node --test tests/frontend.test.cjs
+      - name: Bootstrap regression tests
+        run: python3 tests/bootstrap.test.py
   integration:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Fresh cache ownership regression
+        run: bash tests/docker-trust.test.sh
       - run: bash tests/docker.sh
       - name: Stop disposable stack
         if: always()
-        run: docker compose -f tests/compose.yaml down --volumes
+        run: |
+          if [ -f tests/.env ]; then
+            docker compose -f tests/compose.yaml --env-file tests/.env down --volumes
+          fi

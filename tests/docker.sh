@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")"
+diagnostics_on_failure() {
+    status=$?
+    if [ "$status" -ne 0 ]; then
+        docker compose ps -a || true
+        docker compose logs --no-color --tail 80 shop db || true
+    fi
+    exit "$status"
+}
+trap diagnostics_on_failure EXIT
 python3 - <<'PY'
 import os, secrets
 if not os.path.exists('.env'):
@@ -11,6 +20,13 @@ PY
 docker compose up -d
 ready=false
 for attempt in $(seq 1 180); do
+    state=$(docker compose ps -a --format '{{.State}}' shop)
+    case "$state" in
+        exited|dead|removing|'')
+            echo "PrestaShop installer stopped before readiness (container state: ${state:-missing})." >&2
+            exit 1
+            ;;
+    esac
     if docker compose exec -T shop sh -c 'test -f app/config/parameters.php && test ! -d install-dev && curl --fail --silent --show-error http://127.0.0.1/ -H "Host: localhost:8080" -o /tmp/pays-ready.html && grep -q "<html" /tmp/pays-ready.html' 2>/dev/null; then
         ready=true
         break
@@ -18,7 +34,6 @@ for attempt in $(seq 1 180); do
     sleep 3
 done
 if [ "$ready" != true ]; then
-    docker compose logs --tail 60 shop
     echo 'PrestaShop did not finish installation.' >&2
     exit 1
 fi
