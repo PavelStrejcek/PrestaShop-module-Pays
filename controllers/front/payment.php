@@ -56,7 +56,7 @@ class Pays_PsPaymentModuleFrontController extends ModuleFrontController
 
         $customer = new Customer($this->context->cart->id_customer);
         if (!Validate::isLoadedObject($customer)) {
-            Tools::redirectLink(__PS_BASE_URI__ . 'order.php?step=1');
+            Tools::redirect('index.php?controller=order&step=1');
         }
 
         // confirm

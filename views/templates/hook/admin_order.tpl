@@ -37,7 +37,7 @@
                 <th>{l s='Additional description' mod='pays_ps'}</th>
             </tr>
             </thead>
-            <tbody
+            <tbody>
             {foreach from=$paysPsResponses item=paysPsResponse}
             <tr>
                 <td>{dateFormat date=$paysPsResponse->date_add full=1}</td>

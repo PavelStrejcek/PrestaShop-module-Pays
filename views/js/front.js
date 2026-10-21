@@ -18,16 +18,7 @@
  */
 
 $(function () {
-    window.paysPsOrderClicked = false;
-    if (! window.paysPsClickEventDefined) {
-        $('#payment-confirmation').click(function (e) {
-            if (window.paysPsOrderClicked) {
-                return false;
-            }
-            window.paysPsOrderClicked = true;
-            return true;
-        });
-        $('.payment-option label img[src*="pays_ps-payment"]').addClass('pays_ps-option-img');
-        window.paysPsClickEventDefined = true;
-    }
+    // Checkout validation/retries belong to PrestaShop. A global click guard
+    // also blocks other payment methods and retries after validation errors.
+    $('.payment-option label img[src*="pays_ps-payment"]').addClass('pays_ps-option-img');
 });

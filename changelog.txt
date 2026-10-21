@@ -1,3 +1,16 @@
+2.0.0 (PS9-dev)
+- PrestaShop 9 compatibility; corrected controller registration and removed old redirect API.
+- Ignore a migrated advanced-stock flag instead of calling the removed dependsOnStock API.
+- Authenticate payment callbacks before accessing orders; reject empty keys and malformed input.
+- Share callback processing, serialize concurrent delivery, and prevent replay/double booking.
+- Make payment, response, audit and status writes transactional; send status mail after commit.
+- Validate currency/base units and module/shop ownership; reject ambiguous split orders.
+- Preserve paid/terminal states on late callbacks and restrict retry links to pending Pays orders.
+- Use random cart-bound checkout tokens and constant-time signature/token comparisons.
+- Fix monetary epsilon, diagnostic-code storage, message interpolation and stale admin links.
+- Remove the global checkout click blocker so validation retries and other methods work.
+- Add unit, frontend and real PrestaShop 9 integration regression tests.
+
 2024/06/25 (version 1.0.9)
 - General: CardholderName added to the payment request, the email always
 

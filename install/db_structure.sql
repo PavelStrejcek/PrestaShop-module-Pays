@@ -80,7 +80,7 @@ CREATE TABLE `PREFIX_pays_ps_message` (
   `id_message` int(11) NOT NULL,
   `id_cart` int(11) NOT NULL,
   `type` enum('STATUS','ERROR') NOT NULL,
-  `code` varchar(30) DEFAULT NULL,
+  `code` varchar(255) DEFAULT NULL,
   `message` varchar(1000) DEFAULT NULL,
   `param` varchar(4000) DEFAULT NULL,
   `date_add` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP

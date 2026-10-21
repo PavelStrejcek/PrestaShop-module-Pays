@@ -36,19 +36,26 @@ require_once PAYS_PS_DIR . '/model/Currency.php';
 require_once PAYS_PS_DIR . '/model/Message.php';
 require_once PAYS_PS_DIR . '/model/Utils.php';
 require_once PAYS_PS_DIR . '/model/OrderState.php';
+require_once PAYS_PS_DIR . '/model/Callback.php';
 
 class Pays_PS extends PaymentModule
 {
+    public $modelDb;
+    public $modelCurrency;
+    public $paysPsUnsignedStatusMessage;
+    public $paysPsSignedStatusMessage;
+    public $paysPsAllowedLanguages;
+
     public function __construct()
     {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.9';
+        $this->version = '2.0.0';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
-        $this->ps_versions_compliancy = array('min' => '8.0', 'max' => '8.9');
+        $this->ps_versions_compliancy = array('min' => '9.0.0', 'max' => '9.99.99');
         $this->bootstrap = true;
-        $this->controllers = array('payment', 'validate', 'confirm');
+        $this->controllers = array('payment', 'validation', 'confirm');
 
         parent::__construct();
 
@@ -440,7 +447,11 @@ class Pays_PS extends PaymentModule
         $order = new Order($params['id_order']);
         if (Validate::isLoadedObject($order)) {
             $this->context->smarty->assign(array(
-                'paysPsLogoPath' => $this->getLogoPath()
+                'paysPsLogoPath' => $this->getLogoPath(),
+                'paysPsMsgs' => [],
+                'paysPsPayment' => null,
+                'paysPsResponses' => null,
+                'paysPsPaymentUrl' => '',
             ));
             $payment = new PaysPsModelPayment($order->id_cart);
             if (Validate::isLoadedObject($payment)) {
@@ -450,7 +461,7 @@ class Pays_PS extends PaymentModule
                     'paysPsResponses' => $payment->getResponses()
                 ));
             }
-            if ($this->isOrderForPayment($order, false)) {
+            if ($this->isOrderForPayment($order)) {
                 $paymentUrl = $this->createPaymentUrl($order);
                 $this->context->smarty->assign(array(
                     'paysPsPaymentUrl' => $paymentUrl
@@ -531,6 +542,12 @@ class Pays_PS extends PaymentModule
 
     public function isOrderForPayment($order, $checkPaymentMethod = true)
     {
+        if (!Validate::isLoadedObject($order) || !in_array((int) $order->current_state, [
+            (int) Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_AWAITING'),
+            (int) Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_UNREALIZED'),
+        ], true)) {
+            return false;
+        }
         $compare = PaysPsModelUtils::floatcmp($order->getTotalPaid(), $order->total_paid_tax_incl) == -1;
         if ($checkPaymentMethod) {
             return $order->module == $this->name && $compare;
@@ -714,7 +731,7 @@ class Pays_PS extends PaymentModule
 
     private function getOptionHash($option)
     {
-        $hash = uniqid('', true);
+        $hash = bin2hex(random_bytes(32));
         $this->context->cookie->{'pays_ps_option_' . $option . '_hash'} = $this->context->cart->id . '_' . $hash;
         return $hash;
     }
@@ -725,8 +742,11 @@ class Pays_PS extends PaymentModule
             return true;
         }
         $cookie = $this->context->cookie->{'pays_ps_option_' . $option . '_hash'};
-        $pair = explode('_', $cookie);
-        if (!empty($pair[0]) && $pair[0] == $id_cart && !empty($pair[1]) && $pair[1] == $hash) {
+        if (!is_string($cookie) || !is_string($hash) || $hash === '') {
+            return false;
+        }
+        $pair = explode('_', $cookie, 2);
+        if (!empty($pair[0]) && (string) $pair[0] === (string) $id_cart && !empty($pair[1]) && hash_equals($pair[1], $hash)) {
             return true;
         }
         return false;
@@ -773,11 +793,32 @@ class Pays_PS extends PaymentModule
 
     public function validateResponseHash($PaymentOrderID, $MerchantOrderNumber, $PaymentOrderStatusID, $CurrencyID, $Amount, $CurrencyBaseUnits, $hash)
     {
-        $computedHash = hash_hmac('md5', $PaymentOrderID . $MerchantOrderNumber . $PaymentOrderStatusID . $CurrencyID . $Amount . $CurrencyBaseUnits, Configuration::get('PAYS_PS_PASSWORD'));
-        return $computedHash === $hash;
+        $password = Configuration::get('PAYS_PS_PASSWORD');
+        if (!is_string($password) || $password === '') {
+            return false;
+        }
+        foreach ([$PaymentOrderID, $MerchantOrderNumber, $PaymentOrderStatusID, $CurrencyID, $Amount, $CurrencyBaseUnits, $hash] as $value) {
+            if (!is_string($value) && !is_int($value)) {
+                return false;
+            }
+        }
+        if (!preg_match('/^[1-9][0-9]{0,9}$/D', (string) $PaymentOrderID)
+            || (float) $PaymentOrderID > 4294967295
+            || !preg_match('/^[a-zA-Z0-9_-]{1,15}$/D', (string) $MerchantOrderNumber)
+            || !in_array((string) $PaymentOrderStatusID, ['2', '3'], true)
+            || !preg_match('/^[A-Z]{3}$/D', (string) $CurrencyID)
+            || !preg_match('/^[1-9][0-9]{0,9}$/D', (string) $Amount)
+            || (float) $Amount > 2147483647
+            || !in_array((string) $CurrencyBaseUnits, ['1', '10', '100', '1000'], true)
+            || !is_string($hash) || !preg_match('/^[a-fA-F0-9]{32}$/D', $hash)) {
+            return false;
+        }
+        // HMAC-MD5 is required by the Pays protocol; compare in constant time.
+        $computedHash = hash_hmac('md5', $PaymentOrderID . $MerchantOrderNumber . $PaymentOrderStatusID . $CurrencyID . $Amount . $CurrencyBaseUnits, $password);
+        return hash_equals($computedHash, strtolower($hash));
     }
 
-    public function changeOrderToReceivedStatus($order)
+    public function changeOrderToReceivedStatus($order, ?array &$notifications = null)
     {
         if (defined('PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID')
             && is_int(PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID)) {
@@ -789,13 +830,14 @@ class Pays_PS extends PaymentModule
             }
         }
 
-        $this->changeOrderStatus(
+        return $this->changeOrderStatus(
             $order,
-            empty($id_order_state) ? Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED') : $id_order_state
+            empty($id_order_state) ? Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED') : $id_order_state,
+            $notifications
         );
     }
 
-    public function changeOrderStatus($order, $id_order_state)
+    public function changeOrderStatus($order, $id_order_state, ?array &$notifications = null)
     {
         try {
             $order_state = new OrderState($id_order_state);
@@ -822,22 +864,25 @@ class Pays_PS extends PaymentModule
                     }
 
                     // Save all changes
-                    if ($history->addWithemail(true, $templateVars)) {
-                        // synchronizes quantities if needed..
-                        if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
-                            foreach ($order->getProducts() as $product) {
-                                if (StockAvailable::dependsOnStock($product['product_id'])) {
-                                    StockAvailable::synchronize($product['product_id'], (int) $product['id_shop']);
-                                }
-                            }
+                    $saved = $notifications === null ? $history->addWithemail(true, $templateVars) : $history->add();
+                    if ($saved) {
+                        if ($notifications !== null) {
+                            Order::cleanHistoryCache();
+                            $notifications[] = ['history' => $history, 'order' => $order, 'vars' => $templateVars];
                         }
+                        // PrestaShop 9 manages stock in OrderHistory. Its removed
+                        // dependsOnStock API must not be called even if an old
+                        // PS_ADVANCED_STOCK_MANAGEMENT value survives migration.
                         return true;
                     }
+                } else {
+                    return true;
                 }
             }
         } catch (Exception $e) {
             $emsg = $e->getMessage();
         }
         PrestaShopLogger::addLog($this->l('Pays: Unable to complete order status change to "Non-cash payment received" when confirming payment from service.') . (empty($emsg) ? '' : ' Exception: ' . $emsg), 1, null, 'Order', $order->id, true);
+        return false;
     }
 }

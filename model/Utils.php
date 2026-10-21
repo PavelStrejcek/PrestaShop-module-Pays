@@ -34,13 +34,9 @@ class PaysPsModelUtils
         $left = (float) $left;
         $right = (float) $right;
 
-        if (defined('PHP_FLOAT_EPSILON')) {
-            $epsilon = PHP_FLOAT_EPSILON;
-        } else {
-            $epsilon = 0.00001;
-        }
+        $epsilon = $epsilon === null ? 0.00001 : abs((float) $epsilon);
 
-        if (abs($left - $right) < $epsilon) {
+        if ($left === $right || abs($left - $right) < $epsilon) {
             return 0;
         }
         if ($left > $right) {
