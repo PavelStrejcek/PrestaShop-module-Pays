@@ -1,0 +1,46 @@
+name: pays-ps9-tests
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:?Run tests/docker.sh first}
+      MARIADB_DATABASE: prestashop
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    volumes:
+      - database:/var/lib/mysql
+  shop:
+    image: prestashop/prestashop:9.0.0
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_SERVER: db
+      DB_NAME: prestashop
+      DB_USER: root
+      DB_PASSWD: ${DB_PASSWORD:?Run tests/docker.sh first}
+      PS_INSTALL_AUTO: '1'
+      PS_DOMAIN: localhost:8080
+      PS_FOLDER_ADMIN: admin-dev
+      PS_FOLDER_INSTALL: install-dev
+      PS_LANGUAGE: en
+      PS_COUNTRY: cz
+      PS_DEV_MODE: '1'
+      ADMIN_MAIL: developer@example.test
+      ADMIN_PASSWD: ${ADMIN_PASSWORD:?Run tests/docker.sh first}
+      HTTP_PROXY:
+      HTTPS_PROXY:
+      NO_PROXY:
+    ports:
+      - '127.0.0.1:8080:80'
+    volumes:
+      - shop:/var/www/html
+      - ../:/var/www/html/modules/pays_ps:ro
+      - ./docker/trust.sh:/tmp/pre-install-scripts/pays-trust.sh:ro
+      - ${PAYS_TEST_CA_BUNDLE:-/etc/ssl/certs/ca-certificates.crt}:/setup/system-ca.pem:ro
+volumes:
+  shop:
+  database:
