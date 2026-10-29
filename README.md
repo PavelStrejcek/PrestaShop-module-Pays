@@ -8,6 +8,23 @@ The original PrestaShop 8 version remains on `master`.
 
 ## Installation and upgrade
 
+Build an installable ZIP from the **last commit of the current branch**:
+
+```sh
+bash scripts/build-package.sh
+# Optional output directory (may be outside the repository):
+bash scripts/build-package.sh /tmp/pays-release
+```
+
+Requires Bash and Git. The default output is `dist/pays_ps-2.0.1.zip`; the version
+is read from committed `pays_ps.php`. Commit production changes before building.
+The ZIP contains a single `pays_ps/` directory with the module code, assets,
+translations, installation/upgrade/uninstallation files, default settings template,
+license and changelog. It excludes Git/CI files, tests, build scripts, development
+documentation, the old PS8 manual, local `settings.php`, and untracked files.
+An existing ZIP of the same version is replaced only after a successful build.
+Upload this ZIP through the PrestaShop module manager.
+
 Install the module in `modules/pays_ps` using the module manager, or run
 `php bin/console prestashop:module install pays_ps` from the shop root.
 Configure the merchant ID, shop ID and API password in the module settings.

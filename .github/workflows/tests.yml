@@ -27,6 +27,8 @@ jobs:
       - run: node --test tests/frontend.test.cjs
       - name: Bootstrap regression tests
         run: python3 tests/bootstrap.test.py
+      - name: Production package tests
+        run: python3 tests/package.test.py
   integration:
     runs-on: ubuntu-latest
     timeout-minutes: 20

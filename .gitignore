@@ -1,4 +1,5 @@
 config*.xml
 .idea/
 tests/.env
+dist/
 

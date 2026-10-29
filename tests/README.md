@@ -7,6 +7,9 @@ integration tests bootstrap the real PrestaShop classes and use real HTTP reques
 
 Run `python3 tests/bootstrap.test.py` to exercise readiness, startup failures,
 timeouts and test exit-status propagation without Docker or network access.
+Run `python3 tests/package.test.py` to verify the installable ZIP's exact contents,
+production exclusions, committed source/version, and safe replacement on failure.
+Packaging tests require Python 3, Bash and Git and create only disposable fixtures.
 `bash tests/docker-trust.test.sh` checks a fresh prod/dev cache in an isolated
 official PrestaShop 9 container: `www-data` must be able to write its class index,
 and the supplied CA bundle must remain unchanged. It mounts no shop/database
