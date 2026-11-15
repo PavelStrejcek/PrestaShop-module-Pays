@@ -9,7 +9,17 @@ The original PrestaShop 8 version remains on `master`.
 
 ## Installation and upgrade
 
-Build an installable ZIP from the **last commit of the current branch**:
+### Install from GitHub Releases
+
+Download the ready-to-install `pays_ps-2.0.1.zip` package attached to the release on
+[GitHub Releases](https://github.com/PavelStrejcek/PrestaShop-module-Pays/releases)
+(use the release asset `pays_ps-<version>.zip` produced by `scripts/build-package.sh`,
+not GitHub's automatic *Source code* archive) and upload it in the PrestaShop Back Office
+under *Modules → Module Manager → Upload a module*.
+
+### Build an installable ZIP from source
+
+Alternatively, build the same installable ZIP locally from the **last commit of the current branch**:
 
 ```sh
 bash scripts/build-package.sh
@@ -30,6 +40,8 @@ builds a separate `dist/pays_ps-2.0.1-docker.zip` containing `pays_ps/docker/`
 (while still excluding `docker/.env`).
 An existing ZIP of the same version is replaced only after a successful build.
 Upload this ZIP through the PrestaShop module manager.
+
+### Configuration and CLI installation
 
 Install the module in `modules/pays_ps` using the module manager, or run
 `php bin/console prestashop:module install pays_ps` from the shop root.
