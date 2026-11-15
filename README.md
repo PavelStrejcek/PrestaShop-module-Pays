@@ -2,7 +2,7 @@
 
 Connection to the Pays payment gateway.  
 
-Version **2.0.1**, developed on branch `PS9-dev`. Requires PrestaShop 9 and
+Version **2.0.1** (2026-11-15), developed on branch `PS9-dev`. Requires PrestaShop 9 and
 PHP 8.1–8.4 on PrestaShop 9.0, or PHP 8.1–8.5 on PrestaShop 9.1 and later
 (always use a PHP version supported by your particular PrestaShop release).
 The original PrestaShop 8 version remains on `master`.
@@ -23,10 +23,11 @@ Requires Bash and Git. The default output is `dist/pays_ps-2.0.1.zip`; the versi
 is read from committed `pays_ps.php`. Commit production changes before building.
 The ZIP contains a single `pays_ps/` directory with the module code, assets,
 translations, installation/upgrade/uninstallation files, default settings template,
-license and changelog. It excludes Git/CI files, `docker/`, tests, build scripts,
-development documentation, the old PS8 manual, local `settings.php`, and untracked
-files. Passing `--with-docker` builds a separate `dist/pays_ps-2.0.1-docker.zip`
-containing `pays_ps/docker/` (while still excluding `docker/.env`).
+the PDF user manual (`doc/*.pdf`), license and changelog. It excludes Git/CI files,
+`docker/`, tests, build scripts, development documentation, the manual source file
+(`doc/*.odt`), local `settings.php`, and untracked files. Passing `--with-docker`
+builds a separate `dist/pays_ps-2.0.1-docker.zip` containing `pays_ps/docker/`
+(while still excluding `docker/.env`).
 An existing ZIP of the same version is replaced only after a successful build.
 Upload this ZIP through the PrestaShop module manager.
 
@@ -81,9 +82,52 @@ Unsigned free-text gateway descriptions are not stored as authenticated evidence
 
 ## Development and tests
 
-For a persistent local PrestaShop 9 + MariaDB development container with the
-module mounted read-write, PHP/Symfony CLI wrappers and signed callback simulation,
-use `bash docker/dev.sh up` — see [docker/README.md](docker/README.md).
+### Local development Docker stack (`docker/dev.sh`)
+
+`docker/` provides a persistent local PrestaShop 9 + MariaDB 10.11 stack (default
+`prestashop/prestashop:9.1.5-8.5` on `http://localhost:8088/`, isolated from the
+disposable `tests/` stack on `8080`) with the module mounted read-write in
+`/var/www/html/modules/pays_ps` and generated credentials stored in ignored
+`docker/.env` (see [docker/README.md](docker/README.md)):
+
+```sh
+# Start MariaDB + PrestaShop 9, install pays_ps and prefill dev credentials
+bash docker/dev.sh up
+
+# Show container state, Storefront URL and Back Office URL
+bash docker/dev.sh status
+
+# Tail container logs (e.g. follow the shop container)
+bash docker/dev.sh logs -f shop
+
+# Open an interactive shell in /var/www/html/modules/pays_ps (as www-data or root)
+bash docker/dev.sh shell
+bash docker/dev.sh shell --root
+
+# Run PHP CLI inside the container (working directory: modules/pays_ps)
+bash docker/dev.sh php -v
+bash docker/dev.sh php -l pays_ps.php
+
+# Run PrestaShop's Symfony console as www-data
+bash docker/dev.sh console prestashop:module upgrade pays_ps --no-interaction
+bash docker/dev.sh console cache:clear
+
+# Run PHP syntax checks and unit tests inside the container
+bash docker/dev.sh test
+
+# Simulate an HMAC-MD5 signed background confirmation against the dev shop:
+# confirm <ORDER_REF> <AMOUNT_MINOR_UNITS> [STATUS=3] [CURRENCY=CZK] [BASE_UNITS=100] [PAYMENT_ID]
+bash docker/dev.sh confirm UXYZ12345 25000
+bash docker/dev.sh confirm UXYZ12345 25000 2
+
+# Stop containers while preserving shop and database volumes
+bash docker/dev.sh down
+
+# Remove containers and wipe development volumes (e.g. before changing PRESTASHOP_IMAGE)
+bash docker/dev.sh reset
+```
+
+### Regression suites
 
 No Composer or npm dependencies are required for the regression runners:
 
@@ -142,10 +186,10 @@ More information at https://www.BrainWeb.cz
 ## Further information
 
 Further information (in Czech) is in the Instructions for Use:  
-[doc/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf](doc/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf)
+[doc/Navod_k_pouziti_modulu_Pays_v1.5-PS9.pdf](doc/Navod_k_pouziti_modulu_Pays_v1.5-PS9.pdf) (source: [doc/Navod_k_pouziti_modulu_Pays_v1.5-PS9.odt](doc/Navod_k_pouziti_modulu_Pays_v1.5-PS9.odt))
 
 Author:    Pavel Strejček <aplikace@brainweb.cz>  
-Copyright: 2019 - 2024 Pavel Strejček  
+Copyright: 2019 - 2026 Pavel Strejček  
 License:   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
 
 Payment gateway operator and support: www.Pays.cz  

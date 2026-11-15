@@ -45,7 +45,7 @@ fi
 # Explicit list: development files and local settings never enter the archive.
 archive_paths=(
     pays_ps.php index.php logo.png settings-template.php LICENSE changelog.txt
-    controllers model install uninstall upgrade translations views
+    controllers doc ':(exclude)doc/*.odt' model install uninstall upgrade translations views
 )
 suffix=""
 if [ "$with_docker" = true ]; then

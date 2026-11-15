@@ -147,6 +147,68 @@ test('checkout with a deleted customer redirects instead of calling a removed PS
     }
     throw new RuntimeException('Expected a checkout redirect');
 });
+test('resolveManualPdfPath prefers ODT-paired PDF, then PS9 PDF, then fallback PDF, and returns null when missing', function () {
+    $m = module();
+    $baseDir = sys_get_temp_dir() . '/pays_ps_manual_' . bin2hex(random_bytes(8));
+    mkdir($baseDir, 0777, true);
+    $removeTree = static function ($dir) use (&$removeTree) {
+        if (!is_dir($dir)) {
+            return;
+        }
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $entry;
+            is_dir($path) ? $removeTree($path) : unlink($path);
+        }
+        rmdir($dir);
+    };
+    try {
+        // 4) Non-existent or empty directory returns null.
+        same(null, $m->resolveManualPdfPath($baseDir . '/does-not-exist'));
+        $emptyDir = $baseDir . '/empty';
+        mkdir($emptyDir);
+        same(null, $m->resolveManualPdfPath($emptyDir));
+
+        // 3) Fallback to older PDF when new ODT has not been exported to PDF yet.
+        $fallbackDir = $baseDir . '/fallback';
+        mkdir($fallbackDir);
+        file_put_contents($fallbackDir . '/Navod_k_pouziti_modulu_Pays_v1.3-PS8.pdf', '%PDF-1.4');
+        file_put_contents($fallbackDir . '/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf', '%PDF-1.4');
+        file_put_contents($fallbackDir . '/Navod_k_pouziti_modulu_Pays_v1.5-PS9.odt', 'editable');
+        same(
+            $fallbackDir . '/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf',
+            $m->resolveManualPdfPath($fallbackDir)
+        );
+
+        // 2) Prefer *PS9*.pdf over *PS8*.pdf when no ODT-paired PDF exists.
+        $ps9Dir = $baseDir . '/ps9';
+        mkdir($ps9Dir);
+        file_put_contents($ps9Dir . '/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf', '%PDF-1.4');
+        file_put_contents($ps9Dir . '/Navod_k_pouziti_modulu_Pays_v1.5-PS9.pdf', '%PDF-1.4');
+        file_put_contents($ps9Dir . '/z_legacy_PS8.pdf', '%PDF-1.4');
+        same(
+            $ps9Dir . '/Navod_k_pouziti_modulu_Pays_v1.5-PS9.pdf',
+            $m->resolveManualPdfPath($ps9Dir)
+        );
+
+        // 1) Prefer <stem>.pdf matching the newest .odt over standalone PDFs.
+        $odtDir = $baseDir . '/odt';
+        mkdir($odtDir);
+        file_put_contents($odtDir . '/z_standalone_PS9.pdf', '%PDF-1.4');
+        file_put_contents($odtDir . '/Navod_k_pouziti_modulu_Pays_v1.4-PS8.odt', 'old odt');
+        file_put_contents($odtDir . '/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf', '%PDF-1.4');
+        file_put_contents($odtDir . '/Navod_k_pouziti_modulu_Pays_v1.5-PS9.odt', 'new odt');
+        file_put_contents($odtDir . '/Navod_k_pouziti_modulu_Pays_v1.5-PS9.pdf', '%PDF-1.4');
+        same(
+            $odtDir . '/Navod_k_pouziti_modulu_Pays_v1.5-PS9.pdf',
+            $m->resolveManualPdfPath($odtDir)
+        );
+    } finally {
+        $removeTree($baseDir);
+    }
+});
 
 $failed = 0;
 foreach ($tests as $name => $body) {

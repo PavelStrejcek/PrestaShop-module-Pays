@@ -1,4 +1,4 @@
-2.0.1 (PS9-dev)
+2026/11/15 (version 2.0.1)
 - Support PHP 8.5 on PrestaShop 9.1+ while keeping PHP 8.1-8.4 support on PrestaShop 9.0+.
 - Avoid PHP 8.5 null array-offset, Reflection and cURL deprecations across module and test code.
 - Remove jQuery dependency from checkout and admin scripts for PrestaShop 9.1 Hummingbird.
@@ -8,8 +8,11 @@
 - Fix ownership of newly created Docker cache directories before installation.
 - Fail immediately with diagnostics when the CI installer container stops.
 - Add PHP 8.5, PrestaShop 9.1, cold-cache and bootstrap regression tests to GitHub Actions.
+- Fix the Instructions for Use PDF open/download actions in module settings and include `doc/*.pdf` in release archives.
+- Update Czech user manual for PrestaShop 9 (`Navod_k_pouziti_modulu_Pays_v1.5-PS9`).
+- Update copyright notices through 2026 across module files.
 
-2.0.0 (PS9-dev)
+2026/10/21 (version 2.0.0)
 - PrestaShop 9 compatibility; corrected controller registration and removed old redirect API.
 - Ignore a migrated advanced-stock flag instead of calling the removed dependsOnStock API.
 - Authenticate payment callbacks before accessing orders; reject empty keys and malformed input.

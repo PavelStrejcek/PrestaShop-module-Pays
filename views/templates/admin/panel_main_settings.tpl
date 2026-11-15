@@ -10,16 +10,27 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2023 Pavel Strejček
+ * @copyright 2019 - 2026 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
  * Module development: www.BrainWeb.cz
  *}
 <div class="panel">
-    <div style="float:right;font-size: 120%;font-weight:bold;"><a href = "{$paysPsModulePath|escape:'html'}/doc/Navod_k_pouziti_modulu_Pays_v1.4-PS8.pdf" target="_blank"><img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" height="20"> {l s='Instructions for Use (PDF)' mod='pays_ps'}</a></div>
-    <h1>
-        <a href = "https://www.pays.cz/" target="_blank">
-        <img src="{$paysPsLogoPath|escape:'html'}" alt="Pays" style="vertical-align:-45%"></a>
-        &nbsp;{l s='Payment gateway module for' mod='pays_ps'} <a href = "https://www.pays.cz/" target="_blank">Pays.cz</a>
-    </h1>
+    <div class="pays_ps-admin-header">
+        <h1>
+            <a href="https://www.pays.cz/" target="_blank" rel="noopener">
+                <img src="{$paysPsLogoPath|escape:'html'}" alt="Pays" style="vertical-align:-45%"></a>
+            &nbsp;{l s='Payment gateway module for' mod='pays_ps'} <a href="https://www.pays.cz/" target="_blank" rel="noopener">Pays.cz</a>
+        </h1>
+        {if !empty($paysPsManualOpenUrl)}
+        <div class="pays_ps-manual-links">
+            <a href="{$paysPsManualOpenUrl|escape:'html'}" target="_blank" rel="noopener" class="btn btn-default">
+                <img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" height="18" style="vertical-align:text-bottom;"> {l s='Instructions for Use (PDF)' mod='pays_ps'}
+            </a>
+            <a href="{$paysPsManualDownloadUrl|escape:'html'}" class="btn btn-default">
+                <i class="icon-download"></i> {l s='Download PDF' mod='pays_ps'}
+            </a>
+        </div>
+        {/if}
+    </div>

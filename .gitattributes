@@ -5,3 +5,4 @@
 /scripts export-ignore
 /dist export-ignore
 /docker/.env export-ignore
+/doc/*.odt export-ignore

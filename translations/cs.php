@@ -41,6 +41,7 @@ $_MODULE['<{pays_ps}prestashop>pays_ps_b7568fef7a527645ecffb0c1e5eb3d19'] = 'Tat
 $_MODULE['<{pays_ps}prestashop>pays_ps_7f1971cb6b14c0837f13a0ff198f28d0'] = 'Podporované měny:';
 $_MODULE['<{pays_ps}prestashop>pays_ps_c9cc8cce247e49bae79f15173ce97354'] = 'Uložit';
 $_MODULE['<{pays_ps}prestashop>pays_ps_630f6dc397fe74e52d5189e2c80f282b'] = 'Zpět na seznam';
+$_MODULE['<{pays_ps}prestashop>pays_ps_4efc514cc35aaf90c622afc9f2f47e59'] = 'Soubor PDF s návodem nebyl nalezen.';
 $_MODULE['<{pays_ps}prestashop>pays_ps_edc8845564cc077e39a973a9d861527f'] = 'Pays: Nastavení PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID není platné ID stavu objednávky. Použije se výchozí stav modulu.';
 $_MODULE['<{pays_ps}prestashop>pays_ps_bd6647308faff81447cda7bc8d94f618'] = 'Pays: při potvrzení platby za službu nelze dokončit změnu stavu objednávky na položku \"Bezhotovostní platba PŘIJATA\".';
 $_MODULE['<{pays_ps}prestashop>admin_order_d8cf9f84cd7d87118d5645328ed83ae2'] = 'Platební brána Pays';
@@ -63,6 +64,7 @@ $_MODULE['<{pays_ps}prestashop>payment_return_e0dfd0cd113d798fc041ffd44772ac08']
 $_MODULE['<{pays_ps}prestashop>payment_return_b274a99791d8ae785522697c6491cdba'] = 'Žádné informace.';
 $_MODULE['<{pays_ps}prestashop>payment_return_d304c853c515ea96a60b5ad81330bec7'] = 'Nová platba';
 $_MODULE['<{pays_ps}prestashop>panel_main_settings_a6dc571f3a8805591e0b7ad7f6a06493'] = 'Návod k použití (PDF)';
+$_MODULE['<{pays_ps}prestashop>panel_main_settings_2607298669ace2fc910321afeb9f8a84'] = 'Stáhnout PDF';
 $_MODULE['<{pays_ps}prestashop>panel_main_settings_4a016d86953c186aa3e0285441a949bd'] = 'Modul platební brány pro';
 $_MODULE['<{pays_ps}prestashop>panel_payment_confirmation_7dcb54933c7d05ddab5bb3ae55ff95c1'] = 'Komunikační adresy';
 $_MODULE['<{pays_ps}prestashop>panel_payment_confirmation_414ad133164afaf8f9f449a23eef6458'] = 'Tyto údaje zkopírujte a zašlete do Pays.cz';

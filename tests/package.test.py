@@ -24,6 +24,8 @@ class PackageTest(unittest.TestCase):
             'LICENSE': 'license',
             'changelog.txt': 'changes',
             'controllers/front/confirm.php': '<?php // callback\n',
+            'doc/index.php': '<?php\n',
+            'doc/Navod_k_pouziti_modulu_Pays_v1.5-PS9.pdf': '%PDF-1.4\n',
             'model/Callback.php': '<?php // model\n',
             'install/db_structure.sql': 'CREATE TABLE example;',
             'uninstall/uninstall.sql': 'DROP TABLE example;',
@@ -48,7 +50,7 @@ class PackageTest(unittest.TestCase):
             '.github/workflows/tests.yml': 'CI',
             '.gitlab-ci.yml': 'CI',
             'tests/unit.php': '<?php // test\n',
-            'doc/old-manual.odt': 'old manual',
+            'doc/Navod_k_pouziti_modulu_Pays_v1.5-PS9.odt': 'editable manual',
             'scripts/another-tool.sh': '#!/bin/sh\n',
         }
         for name, content in {**self.production, **self.docker, **development}.items():

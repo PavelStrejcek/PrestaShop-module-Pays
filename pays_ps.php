@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2023 Pavel Strejček
+ * @copyright 2019 - 2026 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -578,6 +578,15 @@ class Pays_PS extends PaymentModule
     {
         $output = null;
 
+        $manualAction = Tools::getValue('pays_ps_manual');
+        if (is_string($manualAction) && in_array($manualAction, array('open', 'download'), true)) {
+            $manualPdf = $this->resolveManualPdfPath();
+            if ($manualPdf !== null) {
+                $this->streamManualPdf($manualPdf, $manualAction === 'download' ? 'attachment' : 'inline');
+            }
+            $output .= $this->displayError($this->l('Instructions PDF file was not found.'));
+        }
+
         if (Tools::isSubmit('submit' . $this->name)) {
             $readText = static function ($key) {
                 $value = Tools::getValue($key, '');
@@ -613,9 +622,13 @@ class Pays_PS extends PaymentModule
             }
         }
 
+        $manualPdfPath = $this->resolveManualPdfPath();
+
         $this->context->smarty->assign(array(
             'paysPsLogoPath' => $this->getLogoPath(),
             'paysPsModulePath' => _MODULE_DIR_ . $this->name,
+            'paysPsManualOpenUrl' => $manualPdfPath !== null ? $this->getManualAdminUrl('open') : '',
+            'paysPsManualDownloadUrl' => $manualPdfPath !== null ? $this->getManualAdminUrl('download') : '',
             'paysPsSuccessOnlineURL' => $this->removeLanguageFromUrl($this->context->link->getModuleLink($this->name, 'validation', array('status' => 'online'), true)),
             'paysPsSuccessOfflineURL' => $this->removeLanguageFromUrl($this->context->link->getModuleLink($this->name, 'validation', array('status' => 'offline'), true)),
             'paysPsErrorURL' => $this->removeLanguageFromUrl($this->context->link->getModuleLink($this->name, 'validation', array('status' => 'error'), true)),
@@ -629,6 +642,81 @@ class Pays_PS extends PaymentModule
         $output .= $this->context->smarty->fetch(PAYS_PS_DIR . '/views/templates/admin/panel_payment_confirmation.tpl');
 
         return $output;
+    }
+
+    public function resolveManualPdfPath($docDir = null)
+    {
+        $dir = is_string($docDir) && $docDir !== '' ? rtrim($docDir, '/\\') : PAYS_PS_DIR . '/doc';
+        if (!is_dir($dir)) {
+            return null;
+        }
+
+        $odtFiles = glob($dir . '/*.odt') ?: array();
+        if (!empty($odtFiles)) {
+            natsort($odtFiles);
+            foreach (array_reverse($odtFiles) as $odtFile) {
+                $stemPdf = $dir . '/' . pathinfo($odtFile, PATHINFO_FILENAME) . '.pdf';
+                if (is_file($stemPdf) && is_readable($stemPdf)) {
+                    return $stemPdf;
+                }
+            }
+        }
+
+        $allPdfs = array();
+        foreach (glob($dir . '/*.pdf') ?: array() as $pdfFile) {
+            if (is_file($pdfFile) && is_readable($pdfFile)) {
+                $allPdfs[] = $pdfFile;
+            }
+        }
+        if (empty($allPdfs)) {
+            return null;
+        }
+
+        $ps9Pdfs = array();
+        foreach ($allPdfs as $pdfFile) {
+            if (stripos(basename($pdfFile), 'PS9') !== false) {
+                $ps9Pdfs[] = $pdfFile;
+            }
+        }
+
+        $candidates = !empty($ps9Pdfs) ? $ps9Pdfs : $allPdfs;
+        natsort($candidates);
+        $sorted = array_reverse($candidates);
+
+        return reset($sorted);
+    }
+
+    private function getManualAdminUrl($mode)
+    {
+        $params = array('configure' => $this->name, 'pays_ps_manual' => $mode);
+        return $this->context->link->getAdminLink(
+            'AdminModules',
+            true,
+            array(
+                'route' => 'admin_module_configure_action',
+                'module_name' => $this->name,
+                'pays_ps_manual' => $mode,
+            ),
+            $params
+        );
+    }
+
+    private function streamManualPdf($pdfPath, $disposition)
+    {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        $filename = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($pdfPath));
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: ' . $disposition . '; filename="' . $filename . '"');
+        $size = filesize($pdfPath);
+        if ($size !== false) {
+            header('Content-Length: ' . $size);
+        }
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        readfile($pdfPath);
+        exit;
     }
 
     private function removeLanguageFromUrl($url)
