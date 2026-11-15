@@ -17,8 +17,19 @@
  * Module development: www.BrainWeb.cz
  */
 
-$(function () {
+(function () {
     // Checkout validation/retries belong to PrestaShop. A global click guard
     // also blocks other payment methods and retries after validation errors.
-    $('.payment-option label img[src*="pays_ps-payment"]').addClass('pays_ps-option-img');
-});
+    // Vanilla JS is required because PS 9.1+ Hummingbird loads no global jQuery.
+    function markPaymentLogo() {
+        document.querySelectorAll('.payment-option label img[src*="pays_ps-payment"]').forEach(function (img) {
+            img.classList.add('pays_ps-option-img');
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', markPaymentLogo);
+    } else {
+        markPaymentLogo();
+    }
+})();

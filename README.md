@@ -3,7 +3,8 @@
 Connection to the Pays payment gateway.  
 
 Version **2.0.1**, developed on branch `PS9-dev`. Requires PrestaShop 9 and
-PHP 8.1–8.4 (use the PHP versions supported by your particular PrestaShop release).
+PHP 8.1–8.4 on PrestaShop 9.0, or PHP 8.1–8.5 on PrestaShop 9.1 and later
+(always use a PHP version supported by your particular PrestaShop release).
 The original PrestaShop 8 version remains on `master`.
 
 ## Installation and upgrade
@@ -105,7 +106,8 @@ contact Pays or initiate a charge. A reproducible Docker test stack is in
 Coverage includes signature tampering, array inputs, anonymous returns, duplicate
 and parallel notifications, partial payments, late cancellation, currency/order
 mismatches, transaction rollback/retry, post-commit mail, data-preserving upgrades,
-checkout order creation, retry links and PHP 8.4 compatibility. Actual Pays
+checkout order creation, retry links, Hummingbird/Classic frontend scripts and
+PHP 8.1–8.5 compatibility. Actual Pays
 transactions, external callbacks over public HTTPS, conversion add-ons and other
 themes require separate acceptance testing with the merchant's sandbox setup.
 

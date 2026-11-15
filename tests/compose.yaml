@@ -13,7 +13,7 @@ services:
     volumes:
       - database:/var/lib/mysql
   shop:
-    image: prestashop/prestashop:9.0.0
+    image: ${PRESTASHOP_IMAGE:-prestashop/prestashop:9.1.5-8.5}
     depends_on:
       db:
         condition: service_healthy

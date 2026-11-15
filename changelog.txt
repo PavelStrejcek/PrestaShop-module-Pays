@@ -1,9 +1,12 @@
 2.0.1 (PS9-dev)
+- Support PHP 8.5 on PrestaShop 9.1+ while keeping PHP 8.1-8.4 support on PrestaShop 9.0+.
+- Avoid PHP 8.5 null array-offset, Reflection and cURL deprecations across module and test code.
+- Remove jQuery dependency from checkout and admin scripts for PrestaShop 9.1 Hummingbird.
 - Fix hook registration when PrestaShop development-mode checks are enabled.
 - Keep extension hooks available without subscribing the module to missing handlers.
 - Fix ownership of newly created Docker cache directories before installation.
 - Fail immediately with diagnostics when the CI installer container stops.
-- Add cold-cache and bootstrap regression tests to GitHub Actions.
+- Add PHP 8.5, PrestaShop 9.1, cold-cache and bootstrap regression tests to GitHub Actions.
 
 2.0.0 (PS9-dev)
 - PrestaShop 9 compatibility; corrected controller registration and removed old redirect API.

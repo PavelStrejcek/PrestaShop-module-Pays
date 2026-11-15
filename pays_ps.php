@@ -227,7 +227,8 @@ class Pays_PS extends PaymentModule
         $orderState = new OrderState();
         $orderState->name = array();
         foreach (Language::getLanguages(false) as $language) {
-            $orderState->name[$language['id_lang']] = empty($settings['names'][strtolower($language['iso_code'])]) ? $settings['names']['en'] : $settings['names'][strtolower($language['iso_code'])];
+            $iso = is_string($language['iso_code'] ?? null) ? strtolower($language['iso_code']) : '';
+            $orderState->name[$language['id_lang']] = empty($settings['names'][$iso]) ? $settings['names']['en'] : $settings['names'][$iso];
         }
         return $orderState;
     }
@@ -436,7 +437,7 @@ class Pays_PS extends PaymentModule
             $statusMsg = $paymentUrl = '';
             $response = $payment->getLastResponse();
             if (!$response instanceof PaysPsModelResponse) {
-                if (array_key_exists($payment->gate_response_status, $this->paysPsUnsignedStatusMessage)) {
+                if (is_string($payment->gate_response_status) && array_key_exists($payment->gate_response_status, $this->paysPsUnsignedStatusMessage)) {
                     $statusMsg = $this->paysPsUnsignedStatusMessage[$payment->gate_response_status];
                 } else {
                     $statusMsg = $this->l('Unknown response status of payment.');
@@ -578,13 +579,17 @@ class Pays_PS extends PaymentModule
         $output = null;
 
         if (Tools::isSubmit('submit' . $this->name)) {
-            $pays_ps_merchant = trim(Tools::getValue('PAYS_PS_MERCHANT'));
-            $pays_ps_shop = trim(Tools::getValue('PAYS_PS_SHOP'));
-            $pays_ps_password = trim(Tools::getValue('PAYS_PS_PASSWORD'));
+            $readText = static function ($key) {
+                $value = Tools::getValue($key, '');
+                return is_string($value) || is_int($value) || is_float($value) ? trim((string) $value) : '';
+            };
+            $pays_ps_merchant = $readText('PAYS_PS_MERCHANT');
+            $pays_ps_shop = $readText('PAYS_PS_SHOP');
+            $pays_ps_password = $readText('PAYS_PS_PASSWORD');
 
             $pays_ps_payment_description = array();
             foreach (Language::getLanguages(false) as $lang) {
-                $pays_ps_payment_description[$lang['id_lang']] = trim(Tools::getValue('PAYS_PS_PAYMENT_DESCRIPTION_' . (int) $lang['id_lang']));
+                $pays_ps_payment_description[$lang['id_lang']] = $readText('PAYS_PS_PAYMENT_DESCRIPTION_' . (int) $lang['id_lang']);
             }
 
             if (empty($pays_ps_merchant)) {
@@ -800,8 +805,9 @@ class Pays_PS extends PaymentModule
             'Email' => $customer->email,
         );
 
-        if (array_key_exists(strtolower($language->iso_code), $this->paysPsAllowedLanguages)) {
-            $params['Lang'] = $this->paysPsAllowedLanguages[$language->iso_code];
+        $langIso = is_string($language->iso_code) ? strtolower($language->iso_code) : '';
+        if ($langIso !== '' && array_key_exists($langIso, $this->paysPsAllowedLanguages)) {
+            $params['Lang'] = $this->paysPsAllowedLanguages[$langIso];
         }
 
         $url = 'https://www.pays.cz/paymentorder?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
@@ -877,7 +883,7 @@ class Pays_PS extends PaymentModule
                     $templateVars = array();
                     if ($history->id_order_state == Configuration::get('PS_OS_SHIPPING') && $order->getShippingNumber()) {
                         $templateVars = [
-                            '{followup}' => str_replace('@', $order->getShippingNumber(), $carrier->url),
+                            '{followup}' => str_replace('@', (string) $order->getShippingNumber(), (string) $carrier->url),
                         ];
                     }
 

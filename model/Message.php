@@ -126,10 +126,12 @@ class PaysPsModelMessage extends ObjectModel
         $messages = self::getOrderMessages($id_cart);
         $result = array();
         foreach ($messages as $message) {
-            if (array_key_exists($message->code, self::$messageList[$message->type])) {
+            if (is_string($message->type) && isset(self::$messageList[$message->type])
+                && is_string($message->code) && array_key_exists($message->code, self::$messageList[$message->type])) {
                 $translation = self::$messageList[$message->type][$message->code];
-                if (Tools::strlen($message->param) > 0) {
-                    $translation = strpos($translation, '%s') === false ? $translation . ' (' . $message->param . ')' : sprintf($translation, $message->param);
+                $param = is_string($message->param) || is_int($message->param) || is_float($message->param) ? (string) $message->param : '';
+                if ($param !== '') {
+                    $translation = strpos($translation, '%s') === false ? $translation . ' (' . $param . ')' : sprintf($translation, $param);
                 }
 
                 $result[] = array(

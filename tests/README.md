@@ -1,6 +1,6 @@
 # Regression tests
 
-Run `php tests/unit.php` (PHP 8.1–8.4) and
+Run `php tests/unit.php` (PHP 8.1–8.5) and
 `node --test tests/frontend.test.cjs` (Node 18+). Both return nonzero on failure
 and report the number of executed tests. Unit tests use a small platform double;
 integration tests bootstrap the real PrestaShop classes and use real HTTP requests.
@@ -20,11 +20,13 @@ For a disposable Docker shop, with port 8080 free:
 
 ```sh
 bash tests/docker.sh
+# Or against PrestaShop 9.0 on PHP 8.4 (run `down --volumes` before switching):
+PRESTASHOP_IMAGE=prestashop/prestashop:9.0.0-8.4 bash tests/docker.sh
 ```
 
 Requires Docker Compose, Python 3, and readable source files for the container's
 web user. The script generates local dummy passwords in ignored `tests/.env`
-(mode 0600), starts PrestaShop 9.0.0 and MariaDB 10.11, waits for installation and
+(mode 0600), starts PrestaShop (9.1.5 on PHP 8.5 by default) and MariaDB 10.11, waits for installation and
 a rendered page, installs the module, and runs unit/integration tests. Network
 access is needed for Docker Hub, PrestaShop language packs at
 `i18n.prestashop-project.org` and the installer's standard module dependencies.
@@ -55,8 +57,11 @@ restored in a `finally` block. Only a mail probe installed by the run is uninsta
 The database account therefore needs `TRIGGER` privilege. Nothing submits a real
 payment to Pays. Tests and CI files are excluded from `git archive` packages.
 
-The default official-image stack is validated with PrestaShop 9.0.0, PHP 8.4.12,
-MariaDB 10.11 and development mode enabled, including module installation and
-upgrade. The cache regression starts with absent prod/dev directories, so a reused
-volume cannot hide incorrect ownership. The integration suite also verifies that
-published extension hooks exist without subscribing Pays to missing handlers.
+The official-image stack is validated with PrestaShop 9.1.5 on PHP 8.5.12
+(Hummingbird 2.0) and PrestaShop 9.0.0 on PHP 8.4.12 (Classic), MariaDB 10.11
+and development mode enabled, including module installation and upgrade.
+Recreate the disposable volumes (`down --volumes`) before switching
+`PRESTASHOP_IMAGE` between PrestaShop releases. The cache regression starts with
+absent prod/dev directories, so a reused volume cannot hide incorrect ownership.
+The integration suite also verifies that published extension hooks exist without
+subscribing Pays to missing handlers.

@@ -72,9 +72,7 @@ function requestCallback($controller, $payload) {
     $result = curl_exec($ch);
     if ($result === false) { throw new RuntimeException(curl_error($ch)); }
     $size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-    $r = ['status' => curl_getinfo($ch, CURLINFO_HTTP_CODE), 'headers' => substr($result, 0, $size), 'body' => substr($result, $size)];
-    curl_close($ch);
-    return $r;
+    return ['status' => curl_getinfo($ch, CURLINFO_HTTP_CODE), 'headers' => substr($result, 0, $size), 'body' => substr($result, $size)];
 }
 function requestParallel($payloads) {
     $multi = curl_multi_init();
@@ -88,7 +86,7 @@ function requestParallel($payloads) {
     foreach ($handles as $ch) {
         if (curl_errno($ch)) { throw new RuntimeException(curl_error($ch)); }
         $statuses[] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_multi_remove_handle($multi, $ch); curl_close($ch);
+        curl_multi_remove_handle($multi, $ch);
     }
     curl_multi_close($multi);
     return $statuses;

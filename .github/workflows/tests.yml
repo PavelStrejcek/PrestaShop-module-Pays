@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ['8.1', '8.2', '8.3', '8.4']
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -32,6 +32,14 @@ jobs:
   integration:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - prestashop/prestashop:9.0.0-8.4
+          - prestashop/prestashop:9.1.5-8.5
+    env:
+      PRESTASHOP_IMAGE: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
       - name: Fresh cache ownership regression
