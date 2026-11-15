@@ -35,17 +35,23 @@ class PackageTest(unittest.TestCase):
             'views/css/front.css': 'body {}',
             'views/img/payment.png': 'image',
         }
+        self.docker = {
+            'docker/compose.yaml': 'services:\n',
+            'docker/dev.sh': '#!/usr/bin/env bash\n',
+            'docker/index.php': '<?php\n',
+            'docker/.htaccess': 'Require all denied\n',
+        }
         development = {
             'README.md': 'development documentation',
-            '.gitattributes': '/tests export-ignore\n/scripts export-ignore\n',
-            '.gitignore': 'dist/\nsettings.php\n.env\n',
+            '.gitattributes': '/tests export-ignore\n/scripts export-ignore\n/docker/.env export-ignore\n',
+            '.gitignore': 'dist/\nsettings.php\n.env\ndocker/.env\n',
             '.github/workflows/tests.yml': 'CI',
             '.gitlab-ci.yml': 'CI',
             'tests/unit.php': '<?php // test\n',
             'doc/old-manual.odt': 'old manual',
             'scripts/another-tool.sh': '#!/bin/sh\n',
         }
-        for name, content in {**self.production, **development}.items():
+        for name, content in {**self.production, **self.docker, **development}.items():
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content)
@@ -66,9 +72,10 @@ class PackageTest(unittest.TestCase):
                               cwd=self.directory.name, text=True, capture_output=True,
                               timeout=30)
 
-    def test_zip_has_exact_production_files_and_single_module_root(self):
+    def test_zip_has_exact_production_files_and_excludes_docker_by_default(self):
         (self.root / 'settings.php').write_text('private configuration')
         (self.root / '.env').write_text('private credentials')
+        (self.root / 'docker/.env').write_text('private docker credentials')
         (self.root / 'model/local-debug.php').write_text('untracked local file')
         # Even a tracked local config at the repository root is excluded.
         self.git('add', '-f', 'settings.php')
@@ -77,12 +84,36 @@ class PackageTest(unittest.TestCase):
                  'commit', '-qm', 'local config fixture')
         result = self.build()
         self.assertEqual(0, result.returncode, result.stderr)
+        self.assertFalse((self.root / 'dist/pays_ps-2.0.1-docker.zip').exists())
         with zipfile.ZipFile(self.root / 'dist/pays_ps-2.0.1.zip') as archive:
             self.assertIsNone(archive.testzip())
             files = {name for name in archive.namelist() if not name.endswith('/')}
             self.assertEqual({'pays_ps/' + name for name in self.production}, files)
             for name, content in self.production.items():
                 self.assertEqual(content.encode(), archive.read('pays_ps/' + name))
+
+    def test_with_docker_creates_separate_archive_and_never_packs_docker_env(self):
+        self.assertEqual(0, self.build().returncode)
+        clean_zip = (self.root / 'dist/pays_ps-2.0.1.zip').read_bytes()
+        (self.root / 'docker/.env').write_text('DB_PASSWORD=secret\n')
+        self.git('add', '-f', 'docker/.env')
+        self.git('-c', 'user.name=Package Test', '-c', 'user.email=test@example.invalid',
+                 '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null',
+                 'commit', '-qm', 'accidentally tracked docker env')
+        result = self.build('--with-docker')
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(clean_zip, (self.root / 'dist/pays_ps-2.0.1.zip').read_bytes())
+        expected = {**self.production, **self.docker}
+        with zipfile.ZipFile(self.root / 'dist/pays_ps-2.0.1-docker.zip') as archive:
+            self.assertIsNone(archive.testzip())
+            files = {name for name in archive.namelist() if not name.endswith('/')}
+            self.assertEqual({'pays_ps/' + name for name in expected}, files)
+            self.assertNotIn('pays_ps/docker/.env', files)
+
+        custom_dir = Path(self.directory.name) / 'docker-out'
+        self.assertEqual(0, self.build(str(custom_dir), '--with-docker').returncode)
+        self.assertTrue((custom_dir / 'pays_ps-2.0.1-docker.zip').exists())
+        self.assertEqual(2, self.build('--unknown-option').returncode)
 
     def test_uses_committed_version_and_content_with_custom_output_directory(self):
         (self.root / 'pays_ps.php').write_text("<?php $this->version = '9.9.9';\n")

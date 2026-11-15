@@ -4,3 +4,4 @@
 /.gitignore export-ignore
 /scripts export-ignore
 /dist export-ignore
+/docker/.env export-ignore

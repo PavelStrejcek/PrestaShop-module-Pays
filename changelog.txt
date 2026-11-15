@@ -2,6 +2,7 @@
 - Support PHP 8.5 on PrestaShop 9.1+ while keeping PHP 8.1-8.4 support on PrestaShop 9.0+.
 - Avoid PHP 8.5 null array-offset, Reflection and cURL deprecations across module and test code.
 - Remove jQuery dependency from checkout and admin scripts for PrestaShop 9.1 Hummingbird.
+- Add persistent local PrestaShop 9 development Docker stack (`docker/`) and `--with-docker` archive option.
 - Fix hook registration when PrestaShop development-mode checks are enabled.
 - Keep extension hooks available without subscribing the module to missing handlers.
 - Fix ownership of newly created Docker cache directories before installation.

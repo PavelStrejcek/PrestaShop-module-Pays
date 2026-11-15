@@ -1,0 +1,46 @@
+name: pays-ps9-dev
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:?Run bash docker/dev.sh up first}
+      MARIADB_DATABASE: ${DB_NAME:-prestashop}
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    volumes:
+      - database:/var/lib/mysql
+  shop:
+    image: ${PRESTASHOP_IMAGE:-prestashop/prestashop:9.1.5-8.5}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_SERVER: db
+      DB_NAME: ${DB_NAME:-prestashop}
+      DB_USER: root
+      DB_PASSWD: ${DB_PASSWORD:?Run bash docker/dev.sh up first}
+      PS_INSTALL_AUTO: '1'
+      PS_DOMAIN: ${SHOP_DOMAIN:-localhost:8088}
+      PS_FOLDER_ADMIN: ${PS_FOLDER_ADMIN:-admin-dev}
+      PS_FOLDER_INSTALL: install-dev
+      PS_LANGUAGE: ${PS_LANGUAGE:-cs}
+      PS_COUNTRY: ${PS_COUNTRY:-cz}
+      PS_DEV_MODE: ${PS_DEV_MODE:-1}
+      ADMIN_MAIL: ${ADMIN_MAIL:-admin@example.test}
+      ADMIN_PASSWD: ${ADMIN_PASSWORD:?Run bash docker/dev.sh up first}
+      HTTP_PROXY:
+      HTTPS_PROXY:
+      NO_PROXY:
+    ports:
+      - '127.0.0.1:${SHOP_PORT:-8088}:80'
+    volumes:
+      - shop:/var/www/html
+      - ../:/var/www/html/modules/pays_ps
+      - ./trust.sh:/tmp/pre-install-scripts/pays-trust.sh:ro
+      - ${PAYS_CA_BUNDLE:-/etc/ssl/certs/ca-certificates.crt}:/setup/system-ca.pem:ro
+volumes:
+  shop:
+  database:

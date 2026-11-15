@@ -1,5 +1,6 @@
 config*.xml
 .idea/
 tests/.env
+docker/.env
 dist/
 

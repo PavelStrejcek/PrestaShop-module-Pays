@@ -15,14 +15,18 @@ Build an installable ZIP from the **last commit of the current branch**:
 bash scripts/build-package.sh
 # Optional output directory (may be outside the repository):
 bash scripts/build-package.sh /tmp/pays-release
+# Optional separate archive including the docker/ development stack (pays_ps-2.0.1-docker.zip):
+bash scripts/build-package.sh --with-docker
 ```
 
 Requires Bash and Git. The default output is `dist/pays_ps-2.0.1.zip`; the version
 is read from committed `pays_ps.php`. Commit production changes before building.
 The ZIP contains a single `pays_ps/` directory with the module code, assets,
 translations, installation/upgrade/uninstallation files, default settings template,
-license and changelog. It excludes Git/CI files, tests, build scripts, development
-documentation, the old PS8 manual, local `settings.php`, and untracked files.
+license and changelog. It excludes Git/CI files, `docker/`, tests, build scripts,
+development documentation, the old PS8 manual, local `settings.php`, and untracked
+files. Passing `--with-docker` builds a separate `dist/pays_ps-2.0.1-docker.zip`
+containing `pays_ps/docker/` (while still excluding `docker/.env`).
 An existing ZIP of the same version is replaced only after a successful build.
 Upload this ZIP through the PrestaShop module manager.
 
@@ -76,6 +80,10 @@ conversion hooks must return a positive amount and a loaded order-currency objec
 Unsigned free-text gateway descriptions are not stored as authenticated evidence.
 
 ## Development and tests
+
+For a persistent local PrestaShop 9 + MariaDB development container with the
+module mounted read-write, PHP/Symfony CLI wrappers and signed callback simulation,
+use `bash docker/dev.sh up` — see [docker/README.md](docker/README.md).
 
 No Composer or npm dependencies are required for the regression runners:
 
