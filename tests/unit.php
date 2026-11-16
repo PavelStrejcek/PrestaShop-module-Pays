@@ -250,6 +250,17 @@ test('resolveManualPdfPath prefers ODT-paired PDF, then PS9 PDF, then fallback P
         $removeTree($baseDir);
     }
 });
+test('manual info icon declares explicit SVG and CSS dimensions so theme resets cannot blow up the button', function () {
+    $svg = file_get_contents(dirname(__DIR__) . '/views/img/info-icon.svg');
+    same(true, preg_match('/<svg\b[^>]*\bwidth="18"[^>]*\bheight="18"[^>]*\bviewBox="0 0 64 64"/s', $svg) === 1);
+
+    $tpl = file_get_contents(dirname(__DIR__) . '/views/templates/admin/panel_main_settings.tpl');
+    same(true, preg_match('/<img\b[^>]*class="pays_ps-manual-icon"[^>]*width="18"[^>]*height="18"[^>]*style="[^"]*width:18px;height:18px;/', $tpl) === 1);
+
+    $css = file_get_contents(dirname(__DIR__) . '/views/css/admin.css');
+    same(true, strpos($css, '.pays_ps-manual-links .pays_ps-manual-icon') !== false);
+    same(true, preg_match('/\.pays_ps-manual-links\s+\.pays_ps-manual-icon\s*\{[^}]*width:\s*18px;[^}]*height:\s*18px;/s', $css) === 1);
+});
 
 $failed = 0;
 foreach ($tests as $name => $body) {
