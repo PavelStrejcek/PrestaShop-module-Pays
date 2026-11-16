@@ -1,0 +1,53 @@
+name: Tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - run: php tests/unit.php
+      - name: PHP syntax
+        run: find . -path './.git' -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/frontend.test.cjs
+      - name: Bootstrap regression tests
+        run: python3 tests/bootstrap.test.py
+      - name: Production package tests
+        run: python3 tests/package.test.py
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - prestashop/prestashop:9.0.0-8.4
+          - prestashop/prestashop:9.1.5-8.5
+    env:
+      PRESTASHOP_IMAGE: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fresh cache ownership regression
+        run: bash tests/docker-trust.test.sh
+      - run: bash tests/docker.sh
+      - name: Stop disposable stack
+        if: always()
+        run: |
+          if [ -f tests/.env ]; then
+            docker compose -f tests/compose.yaml --env-file tests/.env down --volumes
+          fi

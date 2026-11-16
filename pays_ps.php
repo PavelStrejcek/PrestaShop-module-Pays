@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2023 Pavel Strejček
+ * @copyright 2019 - 2026 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -36,19 +36,26 @@ require_once PAYS_PS_DIR . '/model/Currency.php';
 require_once PAYS_PS_DIR . '/model/Message.php';
 require_once PAYS_PS_DIR . '/model/Utils.php';
 require_once PAYS_PS_DIR . '/model/OrderState.php';
+require_once PAYS_PS_DIR . '/model/Callback.php';
 
 class Pays_PS extends PaymentModule
 {
+    public $modelDb;
+    public $modelCurrency;
+    public $paysPsUnsignedStatusMessage;
+    public $paysPsSignedStatusMessage;
+    public $paysPsAllowedLanguages;
+
     public function __construct()
     {
         $this->name = 'pays_ps';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.9';
+        $this->version = '2.0.1';
         $this->author = 'Pavel Strejček @ BrainWeb.cz';
         $this->need_instance = 0;
-        $this->ps_versions_compliancy = array('min' => '8.0', 'max' => '8.9');
+        $this->ps_versions_compliancy = array('min' => '9.0.0', 'max' => '9.99.99');
         $this->bootstrap = true;
-        $this->controllers = array('payment', 'validate', 'confirm');
+        $this->controllers = array('payment', 'validation', 'confirm');
 
         parent::__construct();
 
@@ -64,6 +71,8 @@ class Pays_PS extends PaymentModule
             'STATUS' =>
             array(
                 'MODULE_paymentMethodChosen' => $this->l('Payment method Pays been chosen by the customer when the order is sent.'),
+                'MODULE_responseSignedStatus_1' => $this->l('Response status: Offline payment initiated.'),
+                'MODULE_confirmationSignedStatus_1' => $this->l('Background confirmation status: Offline payment initiated.'),
                 'MODULE_responseSignedStatus_3' => $this->l('Response status: Customer successfully completed payment. Amount: %s'),
                 'MODULE_confirmationSignedStatus_3' => $this->l('Background confirmation status: Customer successfully completed payment. Amount: %s')
             ),
@@ -89,6 +98,7 @@ class Pays_PS extends PaymentModule
         );
 
         $this->paysPsSignedStatusMessage = array(
+            '1' => 'MODULE_responseSignedStatus_1',
             '2' => 'MODULE_responseSignedStatus_2',
             '3' => 'MODULE_responseSignedStatus_3',
         );
@@ -121,15 +131,33 @@ class Pays_PS extends PaymentModule
                 $this->registerHook('paymentReturn') &&
                 $this->registerHook('paymentOptions') &&
                 $this->registerHook('displayAdminOrder') &&
-                $this->registerHook('displayBackOfficeHeader') &&
                 $this->registerHook('actionAdminControllerSetMedia') &&
                 $this->registerHook('actionFrontControllerSetMedia') &&
                 $this->registerHook('displayOrderDetail') &&
                 $this->registerHook('actionEmailAddAfterContent') &&
-                $this->registerHook('displayPaysPsPayOption') &&
-                $this->registerHook('actionPaysPsPaymentUrlAmount') &&
-                $this->registerHook('actionPaysPsAddOrderPayment') &&
+                $this->installIntegrationHooks() &&
                 Configuration::updateValue('PAYS_PS_PAYMENT_DESCRIPTION', $paymentDescriptions);
+    }
+
+    public function installIntegrationHooks()
+    {
+        $published = ['displayPaysPsPayOption', 'actionPaysPsPaymentUrlAmount', 'actionPaysPsAddOrderPayment'];
+        foreach ($published as $name) {
+            // These are extension points consumed by other modules. Publishing
+            // a hook must not register Pays as a listener without a handler.
+            if (!Hook::getIdByName($name)) {
+                $hook = new Hook();
+                $hook->name = $name;
+                $hook->title = $name;
+                if (!$hook->add()) { return false; }
+            }
+        }
+        // Remove only this module's obsolete registrations from earlier versions.
+        // Keep the hook definitions and any third-party subscribers intact.
+        foreach (array_merge(['displayBackOfficeHeader'], $published) as $name) {
+            if ($this->isRegisteredInHook($name) && !$this->unregisterHook($name)) { return false; }
+        }
+        return true;
     }
 
     public function uninstall()
@@ -202,7 +230,8 @@ class Pays_PS extends PaymentModule
         $orderState = new OrderState();
         $orderState->name = array();
         foreach (Language::getLanguages(false) as $language) {
-            $orderState->name[$language['id_lang']] = empty($settings['names'][strtolower($language['iso_code'])]) ? $settings['names']['en'] : $settings['names'][strtolower($language['iso_code'])];
+            $iso = is_string($language['iso_code'] ?? null) ? strtolower($language['iso_code']) : '';
+            $orderState->name[$language['id_lang']] = empty($settings['names'][$iso]) ? $settings['names']['en'] : $settings['names'][$iso];
         }
         return $orderState;
     }
@@ -411,7 +440,7 @@ class Pays_PS extends PaymentModule
             $statusMsg = $paymentUrl = '';
             $response = $payment->getLastResponse();
             if (!$response instanceof PaysPsModelResponse) {
-                if (array_key_exists($payment->gate_response_status, $this->paysPsUnsignedStatusMessage)) {
+                if (is_string($payment->gate_response_status) && array_key_exists($payment->gate_response_status, $this->paysPsUnsignedStatusMessage)) {
                     $statusMsg = $this->paysPsUnsignedStatusMessage[$payment->gate_response_status];
                 } else {
                     $statusMsg = $this->l('Unknown response status of payment.');
@@ -440,7 +469,11 @@ class Pays_PS extends PaymentModule
         $order = new Order($params['id_order']);
         if (Validate::isLoadedObject($order)) {
             $this->context->smarty->assign(array(
-                'paysPsLogoPath' => $this->getLogoPath()
+                'paysPsLogoPath' => $this->getLogoPath(),
+                'paysPsMsgs' => [],
+                'paysPsPayment' => null,
+                'paysPsResponses' => null,
+                'paysPsPaymentUrl' => '',
             ));
             $payment = new PaysPsModelPayment($order->id_cart);
             if (Validate::isLoadedObject($payment)) {
@@ -450,7 +483,7 @@ class Pays_PS extends PaymentModule
                     'paysPsResponses' => $payment->getResponses()
                 ));
             }
-            if ($this->isOrderForPayment($order, false)) {
+            if ($this->isOrderForPayment($order)) {
                 $paymentUrl = $this->createPaymentUrl($order);
                 $this->context->smarty->assign(array(
                     'paysPsPaymentUrl' => $paymentUrl
@@ -531,6 +564,12 @@ class Pays_PS extends PaymentModule
 
     public function isOrderForPayment($order, $checkPaymentMethod = true)
     {
+        if (!Validate::isLoadedObject($order) || !in_array((int) $order->current_state, [
+            (int) Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_AWAITING'),
+            (int) Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_UNREALIZED'),
+        ], true)) {
+            return false;
+        }
         $compare = PaysPsModelUtils::floatcmp($order->getTotalPaid(), $order->total_paid_tax_incl) == -1;
         if ($checkPaymentMethod) {
             return $order->module == $this->name && $compare;
@@ -542,14 +581,27 @@ class Pays_PS extends PaymentModule
     {
         $output = null;
 
+        $manualAction = Tools::getValue('pays_ps_manual');
+        if (is_string($manualAction) && in_array($manualAction, array('open', 'download'), true)) {
+            $manualPdf = $this->resolveManualPdfPath();
+            if ($manualPdf !== null) {
+                $this->streamManualPdf($manualPdf, $manualAction === 'download' ? 'attachment' : 'inline');
+            }
+            $output .= $this->displayError($this->l('Instructions PDF file was not found.'));
+        }
+
         if (Tools::isSubmit('submit' . $this->name)) {
-            $pays_ps_merchant = trim(Tools::getValue('PAYS_PS_MERCHANT'));
-            $pays_ps_shop = trim(Tools::getValue('PAYS_PS_SHOP'));
-            $pays_ps_password = trim(Tools::getValue('PAYS_PS_PASSWORD'));
+            $readText = static function ($key) {
+                $value = Tools::getValue($key, '');
+                return is_string($value) || is_int($value) || is_float($value) ? trim((string) $value) : '';
+            };
+            $pays_ps_merchant = $readText('PAYS_PS_MERCHANT');
+            $pays_ps_shop = $readText('PAYS_PS_SHOP');
+            $pays_ps_password = $readText('PAYS_PS_PASSWORD');
 
             $pays_ps_payment_description = array();
             foreach (Language::getLanguages(false) as $lang) {
-                $pays_ps_payment_description[$lang['id_lang']] = trim(Tools::getValue('PAYS_PS_PAYMENT_DESCRIPTION_' . (int) $lang['id_lang']));
+                $pays_ps_payment_description[$lang['id_lang']] = $readText('PAYS_PS_PAYMENT_DESCRIPTION_' . (int) $lang['id_lang']);
             }
 
             if (empty($pays_ps_merchant)) {
@@ -573,9 +625,13 @@ class Pays_PS extends PaymentModule
             }
         }
 
+        $manualPdfPath = $this->resolveManualPdfPath();
+
         $this->context->smarty->assign(array(
             'paysPsLogoPath' => $this->getLogoPath(),
             'paysPsModulePath' => _MODULE_DIR_ . $this->name,
+            'paysPsManualOpenUrl' => $manualPdfPath !== null ? $this->getManualAdminUrl('open') : '',
+            'paysPsManualDownloadUrl' => $manualPdfPath !== null ? $this->getManualAdminUrl('download') : '',
             'paysPsSuccessOnlineURL' => $this->removeLanguageFromUrl($this->context->link->getModuleLink($this->name, 'validation', array('status' => 'online'), true)),
             'paysPsSuccessOfflineURL' => $this->removeLanguageFromUrl($this->context->link->getModuleLink($this->name, 'validation', array('status' => 'offline'), true)),
             'paysPsErrorURL' => $this->removeLanguageFromUrl($this->context->link->getModuleLink($this->name, 'validation', array('status' => 'error'), true)),
@@ -589,6 +645,81 @@ class Pays_PS extends PaymentModule
         $output .= $this->context->smarty->fetch(PAYS_PS_DIR . '/views/templates/admin/panel_payment_confirmation.tpl');
 
         return $output;
+    }
+
+    public function resolveManualPdfPath($docDir = null)
+    {
+        $dir = is_string($docDir) && $docDir !== '' ? rtrim($docDir, '/\\') : PAYS_PS_DIR . '/doc';
+        if (!is_dir($dir)) {
+            return null;
+        }
+
+        $odtFiles = glob($dir . '/*.odt') ?: array();
+        if (!empty($odtFiles)) {
+            natsort($odtFiles);
+            foreach (array_reverse($odtFiles) as $odtFile) {
+                $stemPdf = $dir . '/' . pathinfo($odtFile, PATHINFO_FILENAME) . '.pdf';
+                if (is_file($stemPdf) && is_readable($stemPdf)) {
+                    return $stemPdf;
+                }
+            }
+        }
+
+        $allPdfs = array();
+        foreach (glob($dir . '/*.pdf') ?: array() as $pdfFile) {
+            if (is_file($pdfFile) && is_readable($pdfFile)) {
+                $allPdfs[] = $pdfFile;
+            }
+        }
+        if (empty($allPdfs)) {
+            return null;
+        }
+
+        $ps9Pdfs = array();
+        foreach ($allPdfs as $pdfFile) {
+            if (stripos(basename($pdfFile), 'PS9') !== false) {
+                $ps9Pdfs[] = $pdfFile;
+            }
+        }
+
+        $candidates = !empty($ps9Pdfs) ? $ps9Pdfs : $allPdfs;
+        natsort($candidates);
+        $sorted = array_reverse($candidates);
+
+        return reset($sorted);
+    }
+
+    private function getManualAdminUrl($mode)
+    {
+        $params = array('configure' => $this->name, 'pays_ps_manual' => $mode);
+        return $this->context->link->getAdminLink(
+            'AdminModules',
+            true,
+            array(
+                'route' => 'admin_module_configure_action',
+                'module_name' => $this->name,
+                'pays_ps_manual' => $mode,
+            ),
+            $params
+        );
+    }
+
+    private function streamManualPdf($pdfPath, $disposition)
+    {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        $filename = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($pdfPath));
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: ' . $disposition . '; filename="' . $filename . '"');
+        $size = filesize($pdfPath);
+        if ($size !== false) {
+            header('Content-Length: ' . $size);
+        }
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        readfile($pdfPath);
+        exit;
     }
 
     private function removeLanguageFromUrl($url)
@@ -714,7 +845,7 @@ class Pays_PS extends PaymentModule
 
     private function getOptionHash($option)
     {
-        $hash = uniqid('', true);
+        $hash = bin2hex(random_bytes(32));
         $this->context->cookie->{'pays_ps_option_' . $option . '_hash'} = $this->context->cart->id . '_' . $hash;
         return $hash;
     }
@@ -725,8 +856,11 @@ class Pays_PS extends PaymentModule
             return true;
         }
         $cookie = $this->context->cookie->{'pays_ps_option_' . $option . '_hash'};
-        $pair = explode('_', $cookie);
-        if (!empty($pair[0]) && $pair[0] == $id_cart && !empty($pair[1]) && $pair[1] == $hash) {
+        if (!is_string($cookie) || !is_string($hash) || $hash === '') {
+            return false;
+        }
+        $pair = explode('_', $cookie, 2);
+        if (!empty($pair[0]) && (string) $pair[0] === (string) $id_cart && !empty($pair[1]) && hash_equals($pair[1], $hash)) {
             return true;
         }
         return false;
@@ -762,8 +896,9 @@ class Pays_PS extends PaymentModule
             'Email' => $customer->email,
         );
 
-        if (array_key_exists(strtolower($language->iso_code), $this->paysPsAllowedLanguages)) {
-            $params['Lang'] = $this->paysPsAllowedLanguages[$language->iso_code];
+        $langIso = is_string($language->iso_code) ? strtolower($language->iso_code) : '';
+        if ($langIso !== '' && array_key_exists($langIso, $this->paysPsAllowedLanguages)) {
+            $params['Lang'] = $this->paysPsAllowedLanguages[$langIso];
         }
 
         $url = 'https://www.pays.cz/paymentorder?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
@@ -773,11 +908,32 @@ class Pays_PS extends PaymentModule
 
     public function validateResponseHash($PaymentOrderID, $MerchantOrderNumber, $PaymentOrderStatusID, $CurrencyID, $Amount, $CurrencyBaseUnits, $hash)
     {
-        $computedHash = hash_hmac('md5', $PaymentOrderID . $MerchantOrderNumber . $PaymentOrderStatusID . $CurrencyID . $Amount . $CurrencyBaseUnits, Configuration::get('PAYS_PS_PASSWORD'));
-        return $computedHash === $hash;
+        $password = Configuration::get('PAYS_PS_PASSWORD');
+        if (!is_string($password) || $password === '') {
+            return false;
+        }
+        foreach ([$PaymentOrderID, $MerchantOrderNumber, $PaymentOrderStatusID, $CurrencyID, $Amount, $CurrencyBaseUnits, $hash] as $value) {
+            if (!is_string($value) && !is_int($value)) {
+                return false;
+            }
+        }
+        if (!preg_match('/^[1-9][0-9]{0,9}$/D', (string) $PaymentOrderID)
+            || (float) $PaymentOrderID > 4294967295
+            || !preg_match('/^[a-zA-Z0-9_-]{1,15}$/D', (string) $MerchantOrderNumber)
+            || !in_array((string) $PaymentOrderStatusID, ['1', '2', '3'], true)
+            || !preg_match('/^[A-Z]{3}$/D', (string) $CurrencyID)
+            || !preg_match('/^[1-9][0-9]{0,9}$/D', (string) $Amount)
+            || (float) $Amount > 2147483647
+            || !in_array((string) $CurrencyBaseUnits, ['1', '10', '100', '1000'], true)
+            || !is_string($hash) || !preg_match('/^[a-fA-F0-9]{32}$/D', $hash)) {
+            return false;
+        }
+        // HMAC-MD5 is required by the Pays protocol; compare in constant time.
+        $computedHash = hash_hmac('md5', $PaymentOrderID . $MerchantOrderNumber . $PaymentOrderStatusID . $CurrencyID . $Amount . $CurrencyBaseUnits, $password);
+        return hash_equals($computedHash, strtolower($hash));
     }
 
-    public function changeOrderToReceivedStatus($order)
+    public function changeOrderToReceivedStatus($order, ?array &$notifications = null)
     {
         if (defined('PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID')
             && is_int(PAY_PS_SPECIAL_ORDER_STATUS_PAYMENT_RECEIVED_ID)) {
@@ -789,13 +945,14 @@ class Pays_PS extends PaymentModule
             }
         }
 
-        $this->changeOrderStatus(
+        return $this->changeOrderStatus(
             $order,
-            empty($id_order_state) ? Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED') : $id_order_state
+            empty($id_order_state) ? Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED') : $id_order_state,
+            $notifications
         );
     }
 
-    public function changeOrderStatus($order, $id_order_state)
+    public function changeOrderStatus($order, $id_order_state, ?array &$notifications = null)
     {
         try {
             $order_state = new OrderState($id_order_state);
@@ -817,27 +974,30 @@ class Pays_PS extends PaymentModule
                     $templateVars = array();
                     if ($history->id_order_state == Configuration::get('PS_OS_SHIPPING') && $order->getShippingNumber()) {
                         $templateVars = [
-                            '{followup}' => str_replace('@', $order->getShippingNumber(), $carrier->url),
+                            '{followup}' => str_replace('@', (string) $order->getShippingNumber(), (string) $carrier->url),
                         ];
                     }
 
                     // Save all changes
-                    if ($history->addWithemail(true, $templateVars)) {
-                        // synchronizes quantities if needed..
-                        if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
-                            foreach ($order->getProducts() as $product) {
-                                if (StockAvailable::dependsOnStock($product['product_id'])) {
-                                    StockAvailable::synchronize($product['product_id'], (int) $product['id_shop']);
-                                }
-                            }
+                    $saved = $notifications === null ? $history->addWithemail(true, $templateVars) : $history->add();
+                    if ($saved) {
+                        if ($notifications !== null) {
+                            Order::cleanHistoryCache();
+                            $notifications[] = ['history' => $history, 'order' => $order, 'vars' => $templateVars];
                         }
+                        // PrestaShop 9 manages stock in OrderHistory. Its removed
+                        // dependsOnStock API must not be called even if an old
+                        // PS_ADVANCED_STOCK_MANAGEMENT value survives migration.
                         return true;
                     }
+                } else {
+                    return true;
                 }
             }
         } catch (Exception $e) {
             $emsg = $e->getMessage();
         }
         PrestaShopLogger::addLog($this->l('Pays: Unable to complete order status change to "Non-cash payment received" when confirming payment from service.') . (empty($emsg) ? '' : ' Exception: ' . $emsg), 1, null, 'Order', $order->id, true);
+        return false;
     }
 }

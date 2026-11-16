@@ -10,7 +10,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2023 Pavel Strejček
+ * @copyright 2019 - 2026 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -37,12 +37,14 @@
                 <th>{l s='Additional description' mod='pays_ps'}</th>
             </tr>
             </thead>
-            <tbody
+            <tbody>
             {foreach from=$paysPsResponses item=paysPsResponse}
             <tr>
                 <td>{dateFormat date=$paysPsResponse->date_add full=1}</td>
                 <td>{$paysPsResponse->payment_order_id|escape:'html'}</td>
-                <td>{if $paysPsResponse->payment_order_status_id == 2}
+                <td>{if $paysPsResponse->payment_order_status_id == 1}
+                        {l s='OFFLINE INITIATED' mod='pays_ps'}
+                    {elseif $paysPsResponse->payment_order_status_id == 2}
                         {l s='UNREALIZED' mod='pays_ps'}
                     {elseif $paysPsResponse->payment_order_status_id == 3}
                         {l s='COMPLETED' mod='pays_ps'}

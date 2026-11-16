@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2023 Pavel Strejček
+ * @copyright 2019 - 2026 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -33,7 +33,7 @@ class PaysPsModelResponse extends ObjectModel
     /** @var string Orer referance */
     public $merchant_order_number;
 
-    /** @var int Status 2 = not realized, 3 = paid */
+    /** @var int Status 1 = offline payment initiated, 2 = not realized, 3 = paid */
     public $payment_order_status_id;
 
     /** @var string currency code */

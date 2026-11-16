@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2023 Pavel Strejček
+ * @copyright 2019 - 2026 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -56,7 +56,7 @@ class Pays_PsPaymentModuleFrontController extends ModuleFrontController
 
         $customer = new Customer($this->context->cart->id_customer);
         if (!Validate::isLoadedObject($customer)) {
-            Tools::redirectLink(__PS_BASE_URI__ . 'order.php?step=1');
+            Tools::redirect('index.php?controller=order&step=1');
         }
 
         // confirm

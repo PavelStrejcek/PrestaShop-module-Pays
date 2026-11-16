@@ -12,7 +12,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2023 Pavel Strejček
+ * @copyright 2019 - 2026 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -54,7 +54,7 @@ class PaysPsModelMessage extends ObjectModel
             /* Classic fields */
             'id_cart' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
             'type' => array('type' => self::TYPE_STRING, 'validate' => 'isString'),
-            'code' => array('type' => self::TYPE_STRING, 'size' => 100),
+            'code' => array('type' => self::TYPE_STRING, 'size' => 255),
             'message' => array('type' => self::TYPE_STRING, 'required' => false, 'size' => 1000),
             'param' => array('type' => self::TYPE_STRING, 'required' => false, 'size' => 4000),
             'date_add' => array('type' => self::TYPE_DATE, 'validate' => 'isDate')
@@ -114,8 +114,11 @@ class PaysPsModelMessage extends ObjectModel
             $message->code = $msgCode;
             $message->message = $combined[$msgCode];
             $message->param = is_array($msg) ? $msg[0] : null;
-            $message->save(true);
+            if (!$message->save(true)) {
+                return false;
+            }
         }
+        return true;
     }
 
     public static function getTranslatedMessages($id_cart)
@@ -123,10 +126,12 @@ class PaysPsModelMessage extends ObjectModel
         $messages = self::getOrderMessages($id_cart);
         $result = array();
         foreach ($messages as $message) {
-            if (array_key_exists($message->code, self::$messageList[$message->type])) {
+            if (is_string($message->type) && isset(self::$messageList[$message->type])
+                && is_string($message->code) && array_key_exists($message->code, self::$messageList[$message->type])) {
                 $translation = self::$messageList[$message->type][$message->code];
-                if (Tools::strlen($message->param) > 0) {
-                    $translation = strpos($translation, '%s') == false ? $translation . ' (' . $message->param . ')' : sprintf($translation, $message->param);
+                $param = is_string($message->param) || is_int($message->param) || is_float($message->param) ? (string) $message->param : '';
+                if ($param !== '') {
+                    $translation = strpos($translation, '%s') === false ? $translation . ' (' . $param . ')' : sprintf($translation, $param);
                 }
 
                 $result[] = array(
@@ -162,9 +167,9 @@ class PaysPsModelMessage extends ObjectModel
                 }
             } elseif (is_array($message)) {
                 if (array_key_exists($key, self::$messageList['ERROR'])) {
-                    $result[$key] = strpos(self::$messageList['ERROR'][$key], '%s') == false ? self::$messageList['ERROR'][$key] . ' (' . $message[0] . ')' : sprintf(self::$messageList['ERROR'][$key], $message[0]);
+                    $result[$key] = strpos(self::$messageList['ERROR'][$key], '%s') === false ? self::$messageList['ERROR'][$key] . ' (' . $message[0] . ')' : sprintf(self::$messageList['ERROR'][$key], $message[0]);
                 } elseif (array_key_exists($key, self::$messageList['STATUS'])) {
-                    $result[$key] = strpos(self::$messageList['STATUS'][$key], '%s') == false ? self::$messageList['STATUS'][$key] . ' (' . $message[0] . ')' : sprintf(self::$messageList['STATUS'][$key], $message[0]);
+                    $result[$key] = strpos(self::$messageList['STATUS'][$key], '%s') === false ? self::$messageList['STATUS'][$key] . ' (' . $message[0] . ')' : sprintf(self::$messageList['STATUS'][$key], $message[0]);
                 } else {
                     $result[$key] = $key . ' (' . $message[0] . ')';
                 }

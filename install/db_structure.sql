@@ -10,7 +10,7 @@
  * to application@brainweb.cz so we can send you a copy..
  *
  * @author    Pavel Strejček <aplikace@brainweb.cz>
- * @copyright 2019 - 2023 Pavel Strejček
+ * @copyright 2019 - 2026 Pavel Strejček
  * @license   Licensed under the Open Software License version 3.0  https://opensource.org/licenses/OSL-3.0
  *
  * Payment gateway operator and support: www.Pays.cz
@@ -80,7 +80,7 @@ CREATE TABLE `PREFIX_pays_ps_message` (
   `id_message` int(11) NOT NULL,
   `id_cart` int(11) NOT NULL,
   `type` enum('STATUS','ERROR') NOT NULL,
-  `code` varchar(30) DEFAULT NULL,
+  `code` varchar(255) DEFAULT NULL,
   `message` varchar(1000) DEFAULT NULL,
   `param` varchar(4000) DEFAULT NULL,
   `date_add` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
