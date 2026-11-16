@@ -42,7 +42,9 @@
             <tr>
                 <td>{dateFormat date=$paysPsResponse->date_add full=1}</td>
                 <td>{$paysPsResponse->payment_order_id|escape:'html'}</td>
-                <td>{if $paysPsResponse->payment_order_status_id == 2}
+                <td>{if $paysPsResponse->payment_order_status_id == 1}
+                        {l s='OFFLINE INITIATED' mod='pays_ps'}
+                    {elseif $paysPsResponse->payment_order_status_id == 2}
                         {l s='UNREALIZED' mod='pays_ps'}
                     {elseif $paysPsResponse->payment_order_status_id == 3}
                         {l s='COMPLETED' mod='pays_ps'}

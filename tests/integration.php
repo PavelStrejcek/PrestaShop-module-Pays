@@ -124,6 +124,33 @@ test('late cancellation and replay cannot downgrade or charge a paid order again
     same(202, requestCallback('confirm', $paid)['status']);
     same(1, fixtureCount('order_payment', "order_reference='" . pSQL($order->reference) . "'"));
 });
+test('signed offline initiation keeps awaiting status until confirmation settles the same payment', function () use ($module) {
+    $order = fixtureOrder();
+    $offline = callbackPayload($order, ['PaymentOrderStatusID' => '1']);
+    $r = requestCallback('validation', ['status' => 'offline'] + $offline);
+    same(302, $r['status']);
+    same(true, strpos($r['headers'], 'key=' . $order->secure_key) !== false);
+    same(0.0, (float) fixtureFreshOrder($order->id)->getTotalPaid());
+    same((int) Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_AWAITING'), (int) fixtureFreshOrder($order->id)->current_state);
+    same(1, fixtureCount('pays_ps_response', 'id_cart=' . (int) $order->id_cart . ' AND payment_order_status_id=1'));
+    same(0, fixtureCount('order_payment', "order_reference='" . pSQL($order->reference) . "'"));
+    same(1, fixtureCount('pays_ps_message', 'id_cart=' . (int) $order->id_cart . " AND code='MODULE_responseSignedStatus_1' AND type='STATUS'"));
+    $adminHtml = $module->hookDisplayAdminOrder(['id_order' => $order->id]);
+    same(false, strpos($adminHtml, 'UNKNOWN') !== false);
+    same(false, strpos($adminHtml, 'NEZNÁMÝ') !== false);
+    same(true, strpos($adminHtml, 'OFFLINE INITIATED') !== false || strpos($adminHtml, 'OFFLINE ZAHÁJENO') !== false);
+
+    $confirmResponse = requestCallback('confirm', callbackPayload($order, ['PaymentOrderID' => $offline['PaymentOrderID'], 'PaymentOrderStatusID' => '3']));
+    same(202, $confirmResponse['status']);
+    same(100.0, (float) fixtureFreshOrder($order->id)->getTotalPaid());
+    same((int) Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED'), (int) fixtureFreshOrder($order->id)->current_state);
+    same(2, fixtureCount('pays_ps_response', 'id_cart=' . (int) $order->id_cart));
+    same(1, fixtureCount('order_payment', "order_reference='" . pSQL($order->reference) . "'"));
+
+    same(202, requestCallback('confirm', $offline)['status']);
+    same((int) Configuration::get('PAYS_PS_ORDER_STATUS_PAYMENT_RECEIVED'), (int) fixtureFreshOrder($order->id)->current_state);
+    same(1, fixtureCount('order_payment', "order_reference='" . pSQL($order->reference) . "'"));
+});
 test('unknown currency is rejected before saving a response', function () {
     $order = fixtureOrder();
     same(422, requestCallback('confirm', callbackPayload($order, ['CurrencyID' => 'ZZZ']))['status']);

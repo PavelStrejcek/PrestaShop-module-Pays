@@ -33,7 +33,7 @@ class PaysPsModelResponse extends ObjectModel
     /** @var string Orer referance */
     public $merchant_order_number;
 
-    /** @var int Status 2 = not realized, 3 = paid */
+    /** @var int Status 1 = offline payment initiated, 2 = not realized, 3 = paid */
     public $payment_order_status_id;
 
     /** @var string currency code */

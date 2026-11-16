@@ -50,6 +50,20 @@ test('valid Pays HMAC-MD5 is accepted', function () {
     $p = ['123', 'ABCDEFGHI', '3', 'CZK', '10000', '100'];
     same(true, module()->validateResponseHash(...array_merge($p, [signature($p, 'test-only-secret')])));
 });
+test('signed offline initiation PaymentOrderStatusID=1 is accepted while 0 and 4 are rejected', function () {
+    Configuration::$values['PAYS_PS_PASSWORD'] = 'test-only-secret';
+    $m = module();
+    $offline = ['818883125', 'VGVAQUHRT', '1', 'EUR', '2900', '100'];
+    same(true, $m->validateResponseHash(...array_merge($offline, [signature($offline, 'test-only-secret')])));
+
+    $offlineInt = ['818883125', 'VGVAQUHRT', 1, 'EUR', '2900', '100'];
+    same(true, $m->validateResponseHash(...array_merge($offlineInt, [signature($offlineInt, 'test-only-secret')])));
+
+    foreach (['0', '4'] as $status) {
+        $p = ['818883125', 'VGVAQUHRT', $status, 'EUR', '2900', '100'];
+        same(false, $m->validateResponseHash(...array_merge($p, [signature($p, 'test-only-secret')])));
+    }
+});
 foreach (['PaymentOrderID', 'MerchantOrderNumber', 'PaymentOrderStatusID', 'CurrencyID', 'Amount', 'CurrencyBaseUnits'] as $index => $field) {
     test('tampered signed ' . $field . ' is rejected', function () use ($index) {
         Configuration::$values['PAYS_PS_PASSWORD'] = 'test-only-secret';
@@ -94,6 +108,33 @@ test('checkout uses a random token bound to the cart without deprecated Reflecti
 test('a placeholder at the beginning of a message is interpolated', function () {
     PaysPsModelMessage::setMessageList(['ERROR' => ['test' => '%s failed'], 'STATUS' => []]);
     same(['test' => 'Payment failed'], PaysPsModelMessage::getCombinedMessages(['test' => ['Payment']]));
+});
+test('status 1 signed messages are registered under STATUS, mapped, combined, translated, and templated', function () {
+    $m = module();
+    same('MODULE_responseSignedStatus_1', $m->paysPsSignedStatusMessage['1'] ?? null);
+    same('Response status: Offline payment initiated.', PaysPsModelMessage::$messageList['STATUS']['MODULE_responseSignedStatus_1'] ?? null);
+    same('Background confirmation status: Offline payment initiated.', PaysPsModelMessage::$messageList['STATUS']['MODULE_confirmationSignedStatus_1'] ?? null);
+    same(false, isset(PaysPsModelMessage::$messageList['ERROR']['MODULE_responseSignedStatus_1']));
+    same(false, isset(PaysPsModelMessage::$messageList['ERROR']['MODULE_confirmationSignedStatus_1']));
+
+    $combined = PaysPsModelMessage::getCombinedMessages([
+        'MODULE_responseSignedStatus_1' => true,
+        'MODULE_confirmationSignedStatus_1' => true,
+    ]);
+    same([
+        'MODULE_responseSignedStatus_1' => 'Response status: Offline payment initiated.',
+        'MODULE_confirmationSignedStatus_1' => 'Background confirmation status: Offline payment initiated.',
+    ], $combined);
+
+    global $_MODULE;
+    require dirname(__DIR__) . '/translations/cs.php';
+    same('Stav odpovědi: Offline platba zahájena.', $_MODULE['<{pays_ps}prestashop>pays_ps_' . md5('Response status: Offline payment initiated.')] ?? null);
+    same('Stav potvrzení na pozadí: Offline platba zahájena.', $_MODULE['<{pays_ps}prestashop>pays_ps_' . md5('Background confirmation status: Offline payment initiated.')] ?? null);
+    same('OFFLINE ZAHÁJENO', $_MODULE['<{pays_ps}prestashop>admin_order_' . md5('OFFLINE INITIATED')] ?? null);
+
+    $adminOrderTpl = file_get_contents(dirname(__DIR__) . '/views/templates/hook/admin_order.tpl');
+    same(true, strpos($adminOrderTpl, "{l s='OFFLINE INITIATED' mod='pays_ps'}") !== false);
+    same(true, preg_match('/\$paysPsResponse->payment_order_status_id\s*==\s*1/', $adminOrderTpl) === 1);
 });
 test('null return status, null message code and missing language iso emit no PHP 8.5 deprecations', function () {
     Configuration::$values['PAYS_PS_PASSWORD'] = 'test-only-secret';

@@ -71,6 +71,8 @@ class Pays_PS extends PaymentModule
             'STATUS' =>
             array(
                 'MODULE_paymentMethodChosen' => $this->l('Payment method Pays been chosen by the customer when the order is sent.'),
+                'MODULE_responseSignedStatus_1' => $this->l('Response status: Offline payment initiated.'),
+                'MODULE_confirmationSignedStatus_1' => $this->l('Background confirmation status: Offline payment initiated.'),
                 'MODULE_responseSignedStatus_3' => $this->l('Response status: Customer successfully completed payment. Amount: %s'),
                 'MODULE_confirmationSignedStatus_3' => $this->l('Background confirmation status: Customer successfully completed payment. Amount: %s')
             ),
@@ -96,6 +98,7 @@ class Pays_PS extends PaymentModule
         );
 
         $this->paysPsSignedStatusMessage = array(
+            '1' => 'MODULE_responseSignedStatus_1',
             '2' => 'MODULE_responseSignedStatus_2',
             '3' => 'MODULE_responseSignedStatus_3',
         );
@@ -917,7 +920,7 @@ class Pays_PS extends PaymentModule
         if (!preg_match('/^[1-9][0-9]{0,9}$/D', (string) $PaymentOrderID)
             || (float) $PaymentOrderID > 4294967295
             || !preg_match('/^[a-zA-Z0-9_-]{1,15}$/D', (string) $MerchantOrderNumber)
-            || !in_array((string) $PaymentOrderStatusID, ['2', '3'], true)
+            || !in_array((string) $PaymentOrderStatusID, ['1', '2', '3'], true)
             || !preg_match('/^[A-Z]{3}$/D', (string) $CurrencyID)
             || !preg_match('/^[1-9][0-9]{0,9}$/D', (string) $Amount)
             || (float) $Amount > 2147483647
