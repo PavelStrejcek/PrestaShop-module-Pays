@@ -26,7 +26,7 @@
         {if !empty($paysPsManualOpenUrl)}
         <div class="pays_ps-manual-links">
             <a href="{$paysPsManualOpenUrl|escape:'html'}" target="_blank" rel="noopener" class="btn btn-default">
-                <img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" height="18" style="vertical-align:text-bottom;"> {l s='Instructions for Use (PDF)' mod='pays_ps'}
+                <img alt="" src="{$paysPsModulePath|escape:'html'}/views/img/info-icon.svg" class="pays_ps-manual-icon" width="18" height="18" style="width:18px;height:18px;max-width:18px;max-height:18px;display:inline-block;flex-shrink:0;vertical-align:middle;"> {l s='Instructions for Use (PDF)' mod='pays_ps'}
             </a>
             <a href="{$paysPsManualDownloadUrl|escape:'html'}" class="btn btn-default">
                 <i class="icon-download"></i> {l s='Download PDF' mod='pays_ps'}
